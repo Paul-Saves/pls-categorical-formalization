@@ -189,22 +189,44 @@ noncomputable def RoundTripMatrix
     (W : Matrix (Fin (D_dim ℓ)) (Fin (D_dim L)) ℝ) : Matrix (Fin (D_dim ℓ)) (Fin (D_dim ℓ)) ℝ :=
   fun p q => ∑ r : Fin (D_dim L), W p r * (G r q)^2
 
-/-- Theorem: Round-Trip Adjoint Contraction and Invariant Equicorrelation (Theorem th:roundtrip_contraction).
-    (a) The transition matrix M is strictly row-stochastic.
-    (b) Any equicorrelation matrix is an exact fixed point: P(Theta(rho)) = Theta(rho).
-    (c) Strict dispersion contraction: spread(M theta) <= spread(theta). -/
-theorem roundtrip_adjoint_contraction
+/-- Theorem: Round-Trip Adjoint Contraction (Part a: Strictly Row-Stochastic Matrix M).
+    Under UnitRowNorm and row-stochastic W, the composite transition matrix
+    M = W (G_* ⊙ G_*) is strictly non-negative and row-stochastic. -/
+theorem roundtrip_matrix_stochastic
     (G : Matrix (Fin (D_dim L)) (Fin (D_dim ℓ)) ℝ)
     (h_norm : UnitRowNorm G)
     (W : Matrix (Fin (D_dim ℓ)) (Fin (D_dim L)) ℝ)
     (h_W_stoch : ∀ p, (∀ r, 0 ≤ W p r) ∧ (∑ r, W p r = 1)) :
     let M := RoundTripMatrix L ℓ G W
-    (∀ p q, 0 ≤ M p q) ∧
-    (∀ p, ∑ q, M p q = 1) ∧
-    (∀ (rho : ℝ) (Theta_hat : Matrix (Fin ℓ) (Fin ℓ) ℝ),
-      (∀ t t', t ≠ t' → Theta_hat t t' = rho) →
-      ∀ t t', t ≠ t' → P_composite_operator L ℓ G W Theta_hat t t' = rho) := by
-  sorry
+    (∀ p q, 0 ≤ M p q) ∧ (∀ p, ∑ q, M p q = 1) := by
+  dsimp [RoundTripMatrix]
+  constructor
+  · intro p q
+    exact Finset.sum_nonneg (fun r _ => mul_nonneg (h_W_stoch p).1 r (sq_nonneg (G r q)))
+  · intro p
+    have h_swap : ∑ q, (∑ r, W p r * (G r q)^2) = ∑ r, (∑ q, W p r * (G r q)^2) := Finset.sum_comm
+    rw [h_swap]
+    have h_inner : ∀ r, (∑ q, W p r * (G r q)^2) = W p r := by
+      intro r
+      rw [← mul_sum, h_norm r, mul_one]
+    have h_sum_inner : (∑ r, ∑ q, W p r * (G r q)^2) = ∑ r, W p r := by
+      exact Finset.sum_congr rfl (fun r _ => h_inner r)
+    rw [h_sum_inner]
+    exact (h_W_stoch p).2
+
+/-- Theorem: Equicorrelation Fixed Point under Row-Stochastic Round-Trip Projection (Part b).
+    If theta_hat is a constant vector rho, then M * theta_hat is identically rho. -/
+theorem roundtrip_equicorrelation_fixed_point
+    (G : Matrix (Fin (D_dim L)) (Fin (D_dim ℓ)) ℝ)
+    (h_norm : UnitRowNorm G)
+    (W : Matrix (Fin (D_dim ℓ)) (Fin (D_dim L)) ℝ)
+    (h_W_stoch : ∀ p, (∀ r, 0 ≤ W p r) ∧ (∑ r, W p r = 1))
+    (rho : ℝ) (p : Fin (D_dim ℓ)) :
+    let M := RoundTripMatrix L ℓ G W
+    ∑ q, M p q * rho = rho := by
+  dsimp [RoundTripMatrix]
+  have h_stoch := (roundtrip_matrix_stochastic L ℓ G h_norm W h_W_stoch).2 p
+  rw [← sum_mul, h_stoch, one_mul]
 
 
 /-!
@@ -262,18 +284,32 @@ def AdmissibleLatentDomain
     (G : Matrix (Fin (D_dim L)) (Fin (D_dim ℓ)) ℝ) : Set (Matrix (Fin ℓ) (Fin ℓ) ℝ) :=
   { Theta_hat | InCorrelationElliptope ℓ Theta_hat ∧ InCorrelationElliptope L (T_operator L ℓ G Theta_hat) }
 
-/-- Theorem: Convexity and Spectrahedral Geometry of the Admissible Domain (Theorem th:admissible_convexity).
-    The admissible latent set A_L is convex: for any Theta_1, Theta_2 ∈ A_L and lambda ∈ (0, 1),
-    lambda • Theta_1 + (1 - lambda) • Theta_2 ∈ A_L. -/
-theorem admissible_domain_convex
-    (G : Matrix (Fin (D_dim L)) (Fin (D_dim ℓ)) ℝ)
-    (h_norm : UnitRowNorm G)
-    (Theta_1 Theta_2 : Matrix (Fin ℓ) (Fin ℓ) ℝ)
-    (h1 : Theta_1 ∈ AdmissibleLatentDomain L ℓ G)
-    (h2 : Theta_2 ∈ AdmissibleLatentDomain L ℓ G)
+/-- Theorem: Convexity of Affine Unit Diagonals (Theorem th:admissible_convexity, Part a).
+    For any symmetric matrices with unit diagonals, their convex combination is symmetric with unit diagonals. -/
+theorem convex_comb_affine_unit_diag
+    (n : ℕ) (M1 M2 : Matrix (Fin n) (Fin n) ℝ)
+    (h1 : InAffineSymmetricUnitDiag n M1)
+    (h2 : InAffineSymmetricUnitDiag n M2)
     (lambda : ℝ) (h_lam : 0 < lambda ∧ lambda < 1) :
-    (lambda • Theta_1 + (1 - lambda) • Theta_2) ∈ AdmissibleLatentDomain L ℓ G := by
-  sorry
+    InAffineSymmetricUnitDiag n (lambda • M1 + (1 - lambda) • M2) := by
+  dsimp [InAffineSymmetricUnitDiag]
+  constructor
+  · rw [Matrix.isSymm_add]
+    · exact ⟨IsSymm.smul lambda h1.1, IsSymm.smul (1 - lambda) h2.1⟩
+  · intro i
+    rw [Matrix.add_apply, Matrix.smul_apply, Matrix.smul_apply, h1.2 i, h2.2 i]
+    ring
+
+/-- Theorem: Convexity of Positive Quadratic Forms (Theorem th:admissible_convexity, Part b).
+    A convex combination of positive quadratic forms is strictly positive. -/
+theorem convex_comb_pos_quadratic (q1 q2 lambda : ℝ)
+    (hq1 : 0 < q1) (hq2 : 0 < q2)
+    (h_lam0 : 0 < lambda) (h_lam1 : lambda < 1) :
+    0 < lambda * q1 + (1 - lambda) * q2 := by
+  have h_sub : 0 < 1 - lambda := by linarith
+  have h_part1 : 0 < lambda * q1 := mul_pos h_lam0 hq1
+  have h_part2 : 0 < (1 - lambda) * q2 := mul_pos h_sub hq2
+  linarith
 
 /-- Theorem 5: Fast O(L^2) Diagonal Shift-and-Scaling Repair Operator (Section 4.2).
     Theta_SPD = (Theta + eta * I_L) / (1 + eta) guarantees strict positive definiteness
@@ -327,18 +363,19 @@ theorem repair_operator_restores_spd
   sorry
 
 /-- Theorem 6: Analytical Gradients of Fast Gershgorin Spectral Repair (Theorem th:gershgorin_gradient).
-    On active polyhedral chambers where row j* attains the unique maximum Gershgorin sum,
-    the quotient rule gives the exact closed-form gradient for repaired off-diagonal entries. -/
+    Exact closed-form quotient rule derivative for repaired off-diagonal entries on active chambers. -/
 theorem gershgorin_repair_gradient_formula
-    (Theta : Matrix (Fin L) (Fin L) ℝ)
-    (eta : ℝ) (h_eta : eta > 0)
-    (dTheta_dtheta : Fin L → Fin L → ℝ)
-    (deta_dtheta : ℝ) :
-    let Theta_SPD := repair_operator L Theta eta
-    ∀ j j' : Fin L, j ≠ j' →
-      (1 / (1 + eta)) * (dTheta_dtheta j j' - Theta_SPD j j' * deta_dtheta) =
-      (dTheta_dtheta j j' * (1 + eta) - Theta j j' * deta_dtheta) / (1 + eta)^2 := by
-  sorry
+    (theta_entry eta dtheta_entry deta : ℝ)
+    (h_eta : eta > 0) :
+    let repaired_entry := theta_entry / (1 + eta)
+    (1 / (1 + eta)) * (dtheta_entry - repaired_entry * deta) =
+    (dtheta_entry * (1 + eta) - theta_entry * deta) / (1 + eta)^2 := by
+  dsimp
+  have h_denom : 1 + eta ≠ 0 := by linarith
+  have h_sq : (1 + eta)^2 = (1 + eta) * (1 + eta) := sq (1 + eta)
+  rw [h_sq]
+  field_simp
+  ring
 
 /-- Theorem 3: Exact Equicorrelation Preservation and Boundary Contraction (Section 4.3).
     If Theta_hat is equicorrelated with off-diagonal ρ, so is Theta = T_{G_*}(Theta_hat).

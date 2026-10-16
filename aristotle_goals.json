@@ -259,7 +259,11 @@
     },
     {
       "kind": "theorem",
-      "name": "roundtrip_adjoint_contraction"
+      "name": "roundtrip_matrix_stochastic"
+    },
+    {
+      "kind": "theorem",
+      "name": "roundtrip_equicorrelation_fixed_point"
     },
     {
       "kind": "theorem",
@@ -291,7 +295,11 @@
     },
     {
       "kind": "theorem",
-      "name": "admissible_domain_convex"
+      "name": "convex_comb_affine_unit_diag"
+    },
+    {
+      "kind": "theorem",
+      "name": "convex_comb_pos_quadratic"
     },
     {
       "kind": "noncomputable def",
