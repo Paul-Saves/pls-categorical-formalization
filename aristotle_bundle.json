@@ -1,0 +1,71 @@
+{
+  "manuscript": {
+    "title": "On the Positive Definiteness of Partial Least Squares Transformations for Correlation Matrices",
+    "author": "Paul Saves",
+    "version": "2.0-formal",
+    "target_formal_languages": ["Lean4", "Aristotle-ATP", "SMT-LIB2"]
+  },
+  "formal_targets": [
+    {
+      "id": "LEMMA_CONVEX_COMB_CONST",
+      "paper_reference": "Section 4, Lemma 4.2",
+      "statement_lean4": "theorem aristotle_goal_convex_comb_const {n : ℕ} (w : Fin n → ℝ) (c : ℝ) (hw_sum : ∑ i, w i = 1) : ∑ i, w i * c = c",
+      "status": "PROVEN",
+      "proof_term": "rw [← sum_mul, hw_sum, one_mul]",
+      "difficulty": 1,
+      "tactics_suggested": ["ring", "linarith", "rw"]
+    },
+    {
+      "id": "LEMMA_CONVEX_COMB_ABS_LE",
+      "paper_reference": "Section 4, Lemma 4.1",
+      "statement_lean4": "theorem aristotle_goal_convex_comb_abs_le {n : ℕ} (w x : Fin n → ℝ) (B : ℝ) (hw_nonneg : ∀ i, 0 ≤ w i) (hw_sum : ∑ i, w i = 1) (hx_le : ∀ i, |x i| ≤ B) : |∑ i, w i * x i| ≤ B",
+      "status": "PROVEN",
+      "proof_strategy": "Bounding each summand using abs_le.mp, summing over the finite set via Finset.sum_le_sum, and collapsing using convex_comb_const.",
+      "difficulty": 2,
+      "tactics_suggested": ["linarith", "positivity", "calc"]
+    },
+    {
+      "id": "LEMMA_CONVEX_WEIGHTS",
+      "paper_reference": "Section 3, Lemma 2",
+      "statement_lean4": "theorem aristotle_goal_convex_weights {Din Dout : ℕ} (G : Matrix (Fin Din) (Fin Dout) ℝ) (h_norm : UnitRowNorm G) (r : Fin Din) : (∀ c : Fin Dout, 0 ≤ (G r c)^2) ∧ (∑ c : Fin Dout, (G r c)^2 = 1)",
+      "status": "PROVEN",
+      "proof_term": "exact ⟨fun c => sq_nonneg (G r c), h_norm r⟩",
+      "difficulty": 1,
+      "tactics_suggested": ["constructor", "positivity"]
+    },
+    {
+      "id": "THM_1_ENTRY_BOUND_PRESERVATION",
+      "paper_reference": "Section 4, Theorem 1",
+      "statement_lean4": "∀ r : Fin Din, |∑ c, w r c * theta_hat c| ≤ 1",
+      "status": "REDUCED_TO_LEMMAS",
+      "dependency_ids": ["LEMMA_CONVEX_COMB_ABS_LE", "LEMMA_CONVEX_WEIGHTS"],
+      "difficulty": 2,
+      "tactics_suggested": ["exact aristotle_goal_convex_comb_abs_le"]
+    },
+    {
+      "id": "THM_2_SPD_RECONSTRUCTION",
+      "paper_reference": "Section 4, Theorem 2",
+      "statement_lean4": "A.PosDef",
+      "status": "REDUCED_TO_SDD",
+      "dependency_ids": ["sdd_implies_posdef", "THM_1_ENTRY_BOUND_PRESERVATION"],
+      "difficulty": 3,
+      "tactics_suggested": ["linarith", "positivity", "exact sdd_implies_posdef"]
+    },
+    {
+      "id": "THM_3_EQUICORRELATION_SPECTRUM",
+      "paper_reference": "Section 4, Theorem 3",
+      "statement_lean4": "mulVec Theta ones = (1 + ((L : ℝ) - 1) * rho) • ones",
+      "status": "PENDING_ARISTOTLE_SOLVER",
+      "difficulty": 3,
+      "tactics_suggested": ["matrix_mulVec", "linarith", "simp"]
+    },
+    {
+      "id": "THM_5_SAMPLE_GRAM_PSD",
+      "paper_reference": "Section 5, Theorem 5",
+      "statement_lean4": "∀ v : Fin nt → ℝ, 0 ≤ mulVec (mulVec v (M * Theta * Mᵀ)) v",
+      "status": "REDUCED_TO_QUADRATIC_FORM",
+      "difficulty": 3,
+      "tactics_suggested": ["matrix_assoc", "posdef_quad"]
+    }
+  ]
+}

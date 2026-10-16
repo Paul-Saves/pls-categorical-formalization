@@ -1,0 +1,22 @@
+# Lean 4 & Lake Build Artifacts
+.lake/
+build/
+*.olean
+*.ilean
+*.c
+
+# Python Artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+*.egg-info/
+dist/
+
+# Editor & System Artifacts
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+.cache/
