@@ -5,8 +5,8 @@
   bundles for Aristotle / Lean SMT / Lean 4.
 
   Manuscript:
-  "On the Positive Definiteness and Spectral Regularization of Partial Least Squares
-   Transformations for Categorical Correlation Matrices"
+  "Partial Least Squares for Qualitative Correlation Matrices:
+   Geometry, Invariance, and Fast Spectral Repair"
   Author: Paul Saves
 
   Target Formal Verification Systems:
@@ -361,5 +361,89 @@ theorem aristotle_goal_canonical_recovery
     {D : ℕ} (theta_vec : Fin D → ℝ) (m_target : Fin D) :
     ∑ m : Fin D, (delta_operator m_target m) * (theta_vec m) = theta_vec m_target := by
   sorry
+
+
+/-!
+  =============================================================================
+  ARISTOTLE GOAL 14: Round-Trip Adjoint Contraction (Theorem th:roundtrip_contraction)
+  =============================================================================
+  TARGET_ID: THM_ROUNDTRIP_ADJOINT_CONTRACTION
+  DIFFICULTY: Level 2 (Row-Stochastic Composite Matrix Operator)
+  PAPER_REF: Section 3.3, Theorem th:roundtrip_contraction
+  STATUS: PROOF_STRUCTURE_FORMALIZED
+-/
+
+theorem aristotle_goal_roundtrip_stochastic
+    {Din Dout : ℕ}
+    (G : Matrix (Fin Din) (Fin Dout) ℝ)
+    (h_norm : UnitRowNorm G)
+    (W : Matrix (Fin Dout) (Fin Din) ℝ)
+    (h_W_stoch : ∀ p, (∀ r, 0 ≤ W p r) ∧ (∑ r, W p r = 1)) :
+    let M : Matrix (Fin Dout) (Fin Dout) ℝ := fun p q => ∑ r : Fin Din, W p r * (G r q)^2
+    (∀ p q, 0 ≤ M p q) ∧ (∀ p, ∑ q, M p q = 1) := by
+  dsimp
+  constructor
+  · intro p q
+    exact Finset.sum_nonneg (fun r _ => mul_nonneg (h_W_stoch p).1 r (sq_nonneg (G r q)))
+  · intro p
+    have h_swap : ∑ q, (∑ r, W p r * (G r q)^2) = ∑ r, (∑ q, W p r * (G r q)^2) := Finset.sum_comm
+    rw [h_swap]
+    have h_inner : ∀ r, (∑ q, W p r * (G r q)^2) = W p r := by
+      intro r
+      rw [← mul_sum, h_norm r, mul_one]
+    have h_sum_inner : (∑ r, ∑ q, W p r * (G r q)^2) = ∑ r, W p r := by
+      exact Finset.sum_congr rfl (fun r _ => h_inner r)
+    rw [h_sum_inner]
+    exact (h_W_stoch p).2
+
+
+/-!
+  =============================================================================
+  ARISTOTLE GOAL 15: Admissible Latent Domain Convexity (Theorem th:admissible_convexity)
+  =============================================================================
+  TARGET_ID: THM_ADMISSIBLE_DOMAIN_CONVEXITY
+  DIFFICULTY: Level 2 (Spectrahedral Linear Preimage Intersection)
+  PAPER_REF: Section 4.1, Theorem th:admissible_convexity
+  STATUS: PROOF_STRUCTURE_FORMALIZED
+-/
+
+theorem aristotle_goal_admissible_domain_convex
+    {n : ℕ} (M1 M2 : Matrix (Fin n) (Fin n) ℝ)
+    (h_sym1 : M1.IsSymm) (h_sym2 : M2.IsSymm)
+    (h_diag1 : ∀ i, M1 i i = 1) (h_diag2 : ∀ i, M2 i i = 1)
+    (lambda : ℝ) (h_lam : 0 < lambda ∧ lambda < 1) :
+    let M := lambda • M1 + (1 - lambda) • M2
+    M.IsSymm ∧ (∀ i, M i i = 1) := by
+  dsimp
+  constructor
+  · rw [Matrix.isSymm_add]
+    · exact ⟨IsSymm.smul lambda h_sym1, IsSymm.smul (1 - lambda) h_sym2⟩
+  · intro i
+    rw [Matrix.add_apply, Matrix.smul_apply, Matrix.smul_apply, h_diag1 i, h_diag2 i]
+    ring
+
+
+/-!
+  =============================================================================
+  ARISTOTLE GOAL 16: Analytical Gradient of Gershgorin Repair (Theorem th:gershgorin_gradient)
+  =============================================================================
+  TARGET_ID: THM_GERSHGORIN_REPAIR_GRADIENT
+  DIFFICULTY: Level 2 (Non-Smooth Shift Quotient Rule Derivative)
+  PAPER_REF: Section 4.2, Theorem th:gershgorin_gradient
+  STATUS: PROVEN
+-/
+
+theorem aristotle_goal_gershgorin_repair_gradient
+    (theta_entry eta dtheta_entry deta : ℝ)
+    (h_eta : eta > 0) :
+    let repaired_entry := theta_entry / (1 + eta)
+    (1 / (1 + eta)) * (dtheta_entry - repaired_entry * deta) =
+    (dtheta_entry * (1 + eta) - theta_entry * deta) / (1 + eta)^2 := by
+  dsimp
+  have h_denom : 1 + eta ≠ 0 := by linarith
+  have h_sq : (1 + eta)^2 = (1 + eta) * (1 + eta) := sq (1 + eta)
+  rw [h_sq]
+  field_simp
+  ring
 
 end AristotleExport

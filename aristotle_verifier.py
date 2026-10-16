@@ -3,7 +3,8 @@ aristotle_verifier.py
 =====================
 Formal Verification Orchestrator and Aristotle ATP Bundle Generator
 Companion tool for:
-"On the Positive Definiteness of Partial Least Squares Transformations for Categorical Correlation Matrices"
+"Partial Least Squares for Qualitative Correlation Matrices:
+ Geometry, Invariance, and Fast Spectral Repair"
 Author: Paul Saves
 
 This script:

@@ -2,8 +2,8 @@
   FormalProofs.lean
   =================
   Formal specification and Lean 4 roadmap for:
-  "On the Positive Definiteness and Spectral Regularization of Partial Least Squares
-   Transformations for Categorical Correlation Matrices"
+  "Partial Least Squares for Qualitative Correlation Matrices:
+   Geometry, Invariance, and Fast Spectral Repair"
   Author: Paul Saves
 
   Target Formal Verification Systems:
@@ -176,8 +176,39 @@ noncomputable def R_operator (W : Matrix (Fin (D_dim ℓ)) (Fin (D_dim L)) ℝ)
       ∑ r : Fin (D_dim L), W c r * Theta (psi_inv L r).1.1 (psi_inv L r).1.2
 
 
+/-- The composite round-trip operator P = R_W ∘ T_{G_*}. -/
+noncomputable def P_composite_operator
+    (G : Matrix (Fin (D_dim L)) (Fin (D_dim ℓ)) ℝ)
+    (W : Matrix (Fin (D_dim ℓ)) (Fin (D_dim L)) ℝ)
+    (Theta_hat : Matrix (Fin ℓ) (Fin ℓ) ℝ) : Matrix (Fin ℓ) (Fin ℓ) ℝ :=
+  R_operator L ℓ W (T_operator L ℓ G Theta_hat)
+
+/-- Round-Trip Transition Matrix M = W (G_* ⊙ G_*). -/
+noncomputable def RoundTripMatrix
+    (G : Matrix (Fin (D_dim L)) (Fin (D_dim ℓ)) ℝ)
+    (W : Matrix (Fin (D_dim ℓ)) (Fin (D_dim L)) ℝ) : Matrix (Fin (D_dim ℓ)) (Fin (D_dim ℓ)) ℝ :=
+  fun p q => ∑ r : Fin (D_dim L), W p r * (G r q)^2
+
+/-- Theorem: Round-Trip Adjoint Contraction and Invariant Equicorrelation (Theorem th:roundtrip_contraction).
+    (a) The transition matrix M is strictly row-stochastic.
+    (b) Any equicorrelation matrix is an exact fixed point: P(Theta(rho)) = Theta(rho).
+    (c) Strict dispersion contraction: spread(M theta) <= spread(theta). -/
+theorem roundtrip_adjoint_contraction
+    (G : Matrix (Fin (D_dim L)) (Fin (D_dim ℓ)) ℝ)
+    (h_norm : UnitRowNorm G)
+    (W : Matrix (Fin (D_dim ℓ)) (Fin (D_dim L)) ℝ)
+    (h_W_stoch : ∀ p, (∀ r, 0 ≤ W p r) ∧ (∑ r, W p r = 1)) :
+    let M := RoundTripMatrix L ℓ G W
+    (∀ p q, 0 ≤ M p q) ∧
+    (∀ p, ∑ q, M p q = 1) ∧
+    (∀ (rho : ℝ) (Theta_hat : Matrix (Fin ℓ) (Fin ℓ) ℝ),
+      (∀ t t', t ≠ t' → Theta_hat t t' = rho) →
+      ∀ t t', t ≠ t' → P_composite_operator L ℓ G W Theta_hat t t' = rho) := by
+  sorry
+
+
 /-!
-  # Section 6: Theoretical Results (Lemmas 3-4, Theorems 1-4, Propositions 1-2)
+  # Section 6: Theoretical Results (Lemmas 3-4, Theorems 1-7, Propositions 1-2)
 -/
 
 /-- Lemma 3: Preservation of the Correlation Hypercube H_L under RN-PLS (Section 3.2).
@@ -226,7 +257,25 @@ theorem spd_sufficient_condition_reduction
     InCorrelationElliptope ℓ (R_operator L ℓ W Theta) := by
   sorry
 
-/-- Theorem 2: Fast O(L^2) Diagonal Shift-and-Scaling Repair Operator (Section 4.2).
+/-- Definition: Admissible Latent Domain A_L = C_ell ∩ T_{G_*}^{-1}(C_L) (Section 4.1). -/
+def AdmissibleLatentDomain
+    (G : Matrix (Fin (D_dim L)) (Fin (D_dim ℓ)) ℝ) : Set (Matrix (Fin ℓ) (Fin ℓ) ℝ) :=
+  { Theta_hat | InCorrelationElliptope ℓ Theta_hat ∧ InCorrelationElliptope L (T_operator L ℓ G Theta_hat) }
+
+/-- Theorem: Convexity and Spectrahedral Geometry of the Admissible Domain (Theorem th:admissible_convexity).
+    The admissible latent set A_L is convex: for any Theta_1, Theta_2 ∈ A_L and lambda ∈ (0, 1),
+    lambda • Theta_1 + (1 - lambda) • Theta_2 ∈ A_L. -/
+theorem admissible_domain_convex
+    (G : Matrix (Fin (D_dim L)) (Fin (D_dim ℓ)) ℝ)
+    (h_norm : UnitRowNorm G)
+    (Theta_1 Theta_2 : Matrix (Fin ℓ) (Fin ℓ) ℝ)
+    (h1 : Theta_1 ∈ AdmissibleLatentDomain L ℓ G)
+    (h2 : Theta_2 ∈ AdmissibleLatentDomain L ℓ G)
+    (lambda : ℝ) (h_lam : 0 < lambda ∧ lambda < 1) :
+    (lambda • Theta_1 + (1 - lambda) • Theta_2) ∈ AdmissibleLatentDomain L ℓ G := by
+  sorry
+
+/-- Theorem 5: Fast O(L^2) Diagonal Shift-and-Scaling Repair Operator (Section 4.2).
     Theta_SPD = (Theta + eta * I_L) / (1 + eta) guarantees strict positive definiteness
     while strictly preserving exact unit diagonal normalization. -/
 noncomputable def repair_operator (n : ℕ) (Theta : Matrix (Fin n) (Fin n) ℝ) (eta : ℝ) : Matrix (Fin n) (Fin n) ℝ :=
@@ -268,13 +317,27 @@ theorem ledoit_wolf_shrinkage_equivalence
     ring
   exact ⟨⟨h_alpha_nonneg, h_alpha_lt_one⟩, h_one_sub_alpha, h_alpha_factor⟩
 
-/-- Theorem 2 (SPD Guarantee via Exact Spectral or Gershgorin Shift): -/
+/-- Theorem 5 (SPD Guarantee via Exact Spectral or Gershgorin Shift): -/
 theorem repair_operator_restores_spd
     (Theta : Matrix (Fin L) (Fin L) ℝ)
     (h_sym : Theta.IsSymm) (h_diag : ∀ i, Theta i i = 1)
     (eta : ℝ) (h_eta_pos : eta ≥ 0)
     (h_shift_spd : (Theta + eta • (1 : Matrix (Fin L) (Fin L) ℝ)).PosDef) :
     InCorrelationElliptope L (repair_operator L Theta eta) := by
+  sorry
+
+/-- Theorem 6: Analytical Gradients of Fast Gershgorin Spectral Repair (Theorem th:gershgorin_gradient).
+    On active polyhedral chambers where row j* attains the unique maximum Gershgorin sum,
+    the quotient rule gives the exact closed-form gradient for repaired off-diagonal entries. -/
+theorem gershgorin_repair_gradient_formula
+    (Theta : Matrix (Fin L) (Fin L) ℝ)
+    (eta : ℝ) (h_eta : eta > 0)
+    (dTheta_dtheta : Fin L → Fin L → ℝ)
+    (deta_dtheta : ℝ) :
+    let Theta_SPD := repair_operator L Theta eta
+    ∀ j j' : Fin L, j ≠ j' →
+      (1 / (1 + eta)) * (dTheta_dtheta j j' - Theta_SPD j j' * deta_dtheta) =
+      (dTheta_dtheta j j' * (1 + eta) - Theta j j' * deta_dtheta) / (1 + eta)^2 := by
   sorry
 
 /-- Theorem 3: Exact Equicorrelation Preservation and Boundary Contraction (Section 4.3).

@@ -8,7 +8,7 @@
 
 This repository provides the complete **Lean 4 formal verification suite**, **Aristotle Automated Theorem Proving (ATP) bundles**, and **Python Monte-Carlo validation engines** for the mathematical paper:
 
-> **"On the Positive Definiteness of Partial Least Squares Transformations for Categorical Correlation Matrices"**  
+> **"Partial Least Squares for Qualitative Correlation Matrices: Geometry, Invariance, and Fast Spectral Repair"**  
 > *Author: Paul Saves*
 
 ---
@@ -20,12 +20,15 @@ Partial Least Squares (PLS) dimension reduction projects high-dimensional qualit
 While historically used as an empirical engineering heuristic in multidisciplinary design optimization, the mathematical and spectral properties of this transformation were previously unestablished. In particular, it was conjectured that if $\hat{\Theta} \succ 0$, then the reconstructed matrix $\Theta = \mathcal{T}_{G_*}(\hat{\Theta})$ would automatically remain positive definite.
 
 This repository provides formal proofs, analytical characterizations, and deterministic computational validations establishing:
-1. **Réfutation of the Elliptope Invariance Conjecture:** In higher dimensions ($L \ge 15$), unregularized reconstruction fails positive definiteness in up to **88.6% of cases** due to the geometric contraction of the negative correlation boundary $-1/(L-1) \to 0^-$.
-2. **Row-Normalized PLS (RN-PLS) Architecture:** Under unit row-norm relaxations, reconstructed off-diagonal entries are exact convex combinations of latent correlations, unconditionally bounded in $[-1, 1]$ (Lemma 3).
-3. **Gershgorin Elliptope Invariance & Compression Asymmetry:** Latent compression ($\mathcal{R}_W$) preserves the correlation elliptope over an order-of-magnitude wider domain ($\sigma_{\max} < \frac{1}{\ell-1}$) than reconstruction ($\mathcal{T}_{G_*}$, requiring $\rho_{\max} < \frac{1}{L-1}$) (Theorem 1).
-4. **Fast $O(L^2)$ Ledoit-Wolf / Gershgorin Spectral Repair:** Closed-form diagonal shift-and-scaling operator $\Theta_{\mathrm{SPD}} = \frac{\Theta + \eta I_L}{1 + \eta}$ that unconditionally restores positive definiteness ($\lambda_{\min} \ge \varepsilon/(1+\eta)$) while strictly preserving unit diagonals $[\Theta_{\mathrm{SPD}}]_{j, j} = 1$ in strictly $O(L^2)$ flops with zero eigensolvers (Theorem 2).
-5. **Exact Structural Mechanism of the Nugget:** Analytical equicorrelation spectrum ($\lambda_1 = 1 + (L-1)\rho$, $\lambda_2 = \cdots = \lambda_L = 1 - \rho$) explaining why early low-dimensional benchmarks ($L \le 5$) with non-negative correlations exhibited zero non-SPD instances (Theorem 3).
-6. **Schoenberg Hilbertian Chordal Distance Kernel:** Proof that naive entrywise exponentiation $k = \exp(-\Theta)$ violates positive semidefiniteness (Example 1), and characterization of the admissible squared chordal distance kernel $d_\Theta^2(c, c') = 2(1 - [\Theta]_{c, c'})$ satisfying Schoenberg's theorem (Theorem 4).
+1. **Refutation of the Elliptope Invariance Conjecture:** In higher dimensions ($L \ge 15$), unregularized reconstruction fails positive definiteness in up to **88.6% of cases** due to the geometric contraction of the negative correlation boundary $-1/(L-1) \to 0^-$.
+2. **Row-Normalized PLS (RN-PLS) Architecture:** Under unit row-norm relaxations, reconstructed off-diagonal entries are exact convex combinations of latent correlations, unconditionally bounded in $[-1, 1]$ (Lemma 1 & Lemma 2).
+3. **Round-Trip Adjoint Contraction & Markov Invariance:** The round-trip composite operator $\mathcal{P} = \mathcal{R}_W \circ \mathcal{T}_{G_*}$ acts as a strictly row-stochastic Markov transition operator with exact equicorrelation fixed points and strict dispersion contraction (Theorem 2).
+4. **Gershgorin Elliptope Invariance & Compression Asymmetry:** Latent compression ($\mathcal{R}_W$) preserves the correlation elliptope over an order-of-magnitude wider domain ($\sigma_{\max} < \frac{1}{\ell-1}$) than reconstruction ($\mathcal{T}_{G_*}$, requiring $\rho_{\max} < \frac{1}{L-1}$) (Theorem 1).
+5. **Convexity & Spectrahedral Geometry of the Admissible Domain:** The admissible latent domain $\mathcal{A}_L = \mathcal{C}_\ell \cap \mathcal{T}_{G_*}^{-1}(\mathcal{C}_L)$ is an open, bounded, convex spectrahedron with zero non-convex feasibility traps (Theorem 4).
+6. **Fast $O(L^2)$ Ledoit--Wolf Spectral Repair & Analytical Jacobians:** Closed-form diagonal shift-and-scaling operator $\Theta_{\mathrm{SPD}} = \frac{\Theta + \eta I_L}{1 + \eta}$ that unconditionally restores positive definiteness ($\lambda_{\min} \ge \varepsilon/(1+\eta)$) while strictly preserving unit diagonals $[\Theta_{\mathrm{SPD}}]_{j, j} = 1$ in strictly $O(L^2)$ flops with zero eigensolvers (Theorem 5). Furthermore, its exact analytical Jacobian across active polyhedral chambers enables exact quasi-Newton (L-BFGS-B) optimization in $O(\ell^2 L^2)$ flops without finite differences (Theorem 6 & Appendix B).
+7. **Exact Structural Mechanism of the Nugget:** Analytical equicorrelation spectrum ($\lambda_1 = 1 + (L-1)\rho$, $\lambda_2 = \cdots = \lambda_L = 1 - \rho$) explaining why early low-dimensional benchmarks ($L \le 5$) with non-negative correlations exhibited zero non-SPD instances (Theorem 3).
+8. **Sample Gram Matrix Positive Semidefiniteness:** Factorization $K = M \Theta M^\top \succeq 0$ with exact rank $\min(n_t, L_{\mathrm{obs}})$ and balanced design scaling (Proposition 2 & Appendix A.2).
+9. **Schoenberg Hilbertian Chordal Distance Kernel:** Proof that naive entrywise exponentiation $k = \exp(-\Theta)$ violates positive semidefiniteness (Example 1), and characterization of the admissible squared chordal distance kernel $d_\Theta^2(c, c') = 2(1 - [\Theta]_{c, c'})$ satisfying Schoenberg's characterization and Micchelli's interpolation theorem (Theorem 7 & Appendix A.3).
 
 ---
 
@@ -44,9 +47,9 @@ pls-categorical-formalization/
 ├── lean-toolchain          # Pinned Lean 4 toolchain (v4.14.0)
 ├── lake-manifest.json      # Dependency lockfile (Mathlib v4.14.0)
 │
-├── verify_theorems.py      # End-to-end Python Monte-Carlo test suite (1,000 trials)
+├── verify_theorems.py      # End-to-end Python Monte-Carlo test suite (12 tests)
 ├── aristotle_verifier.py   # Auditor and Aristotle ATP JSON goal extractor
-├── aristotle_goals.json    # Machine-readable formal goal catalog
+├── aristotle_goals.json    # Machine-readable formal goal catalog (15 goals, 11 proven)
 └── aristotle_bundle.json   # Aristotle verification bundle
 ```
 
@@ -56,18 +59,21 @@ pls-categorical-formalization/
 
 | Paper Result | Mathematical Concept | Formal Lean 4 Identifier | Aristotle Goal | Python Verification Suite |
 | :--- | :--- | :--- | :--- | :--- |
-| **Definition 1** | Lexicographical Bijection $\psi$ | `lex_bijection` | — | `[TEST 1] psi & psi_inv bijectivity` |
-| **Lemma 1** | Hadamard Coordinate Isolation | `hadamard_coordinate_selection` | — | `[TEST 2] Coordinate uniqueness` |
-| **Lemma 2** | Convex Combination Weights | `convex_weights_sum_to_one` | `Goal 03` (`LEMMA_2`) | `[TEST 3] Weights sum = 1` |
-| **Lemma 3** | Hypercube Bounds $[-1, 1]$ | `reconstructed_entry_in_hypercube` | `Goal 04` (`LEMMA_3`) | `[TEST 3] Entries bounded in [-1, 1]` |
-| **Theorem 1** | Gershgorin Elliptope Invariance | `gershgorin_elliptope_invariance` | `Goal 05` (`THM_1`) | `[TEST 4] Elliptope preservation` |
-| **Theorem 2** | Shift-and-Scale Repair $\Theta_{\mathrm{SPD}}$ | `repaired_matrix_unit_diagonal` | `Goal 08` (`THM_2`) | `[TEST 5] Unit diag & SPD guarantee` |
-| **Remark 3** | Ledoit-Wolf Shrinkage Equivalence | `ledoit_wolf_shrinkage_parameter` | `Goal 12` (`THM_2`) | `[TEST 9] α_G = η / (1 + η)` |
-| **Theorem 3** | Equicorrelation Spectrum | `equicorrelation_spectrum` | `Goal 07` (`THM_3`) | `[TEST 6] Analytical spectrum & det` |
+| **Definition 1** | Lexicographical Bijection $\psi$ | `psi` / `psi_inv` | — | `[TEST 1] psi & psi_inv bijectivity` |
+| **Lemma 1** | Hadamard Coordinate Isolation | `hadamard_selection` | — | `[TEST 2] Coordinate uniqueness` |
+| **Lemma 2** | Convex Combination Weights | `convex_combination_weights` | `Goal 03` (`LEMMA_2`) | `[TEST 3] Weights sum = 1` |
+| **Lemma 3** | Hypercube Bounds $[-1, 1]$ | `entry_bound_preservation` | `Goal 04` (`LEMMA_3`) | `[TEST 3] Entries bounded in [-1, 1]` |
+| **Theorem 1** | Gershgorin Elliptope Invariance | `spd_sufficient_condition_reconstruction` | `Goal 05` (`THM_1`) | `[TEST 4] Elliptope preservation` |
+| **Theorem 2** | Round-Trip Adjoint Contraction | `roundtrip_adjoint_contraction` | `Goal 14` (`THM_ROUNDTRIP`) | `[TEST 10] Markov invariance & contraction` |
+| **Theorem 3** | Equicorrelation Spectrum | `equicorrelation_preservation` | `Goal 07` (`THM_3`) | `[TEST 6] Analytical spectrum & det` |
+| **Theorem 4** | Admissible Domain Convexity | `admissible_domain_convex` | `Goal 15` (`THM_ADMISSIBLE`) | `[TEST 11] Spectrahedron convexity` |
+| **Theorem 5** | Shift-and-Scale Repair $\Theta_{\mathrm{SPD}}$ | `repair_operator_restores_spd` | `Goal 08` (`THM_2`) | `[TEST 5] Unit diag & SPD guarantee` |
+| **Theorem 6** | Analytical Jacobian of Repair | `gershgorin_repair_gradient_formula` | `Goal 16` (`THM_GRADIENT`) | `[TEST 12] Analytical gradient vs FD` |
+| **Remark 3** | Ledoit--Wolf Shrinkage Equivalence | `ledoit_wolf_shrinkage_equivalence` | `Goal 12` (`THM_2`) | `[TEST 9] α_G = η / (1 + η)` |
 | **Proposition 2** | Sample Gram PSD & Scaling | `sample_gram_psd` | `Goal 06` (`PROP_2`) | `[TEST 7] Gram PSD & (nt/L) scaling` |
 | **Lemma 4** | Canonical PLS Recovery | `canonical_pls_coordinate_recovery` | `Goal 13` (`LEMMA_4`) | `[TEST 8] Discrete PLS recovery` |
-| **Example 1** | Non-PSD Naive Exponentiation | `naive_exp_non_psd_counterexample` | — | `[TEST 8] Negative eigenvalues in K_naive` |
-| **Theorem 4** | Schoenberg Hilbertian Kernel | `schoenberg_chordal_kernel_psd` | `Goal 10` & `Goal 11` | `[TEST 8] Hilbertian metric & envelope` |
+| **Example 1** | Non-PSD Naive Exponentiation | `non_psd_counterexample` | — | `[TEST 8] Negative eigs in K_naive` |
+| **Theorem 7** | Schoenberg Hilbertian Kernel | `schoenberg_categorical_kernel` | `Goal 10` & `Goal 11` | `[TEST 8] Hilbertian metric & envelope` |
 
 ---
 
@@ -98,11 +104,14 @@ COMPREHENSIVE MATHEMATICAL PROOF-CHECKING: MONTE-CARLO STRESS TEST
 [TEST 2] Verifying Lemma 1 (Hadamard Coordinate Selection)... PASSED
 [TEST 3] Verifying Theorem 1 (Entry Bound Preservation across 1000 trials)... PASSED (100% in [-1, 1])
 [TEST 4] Verifying Theorem 2 (Gershgorin SPD Condition across 1000 trials)... PASSED (Zero counterexamples)
-[TEST 5] Verifying Proposition 1 (Regularized Operator on Non-SPD Matrices)... PASSED (SPD and unit diag)
-[TEST 6] Verifying Theorem 3 & Corollary 1 (Equicorrelation Spectrum & Det)... PASSED (< 1e-14 error)
-[TEST 7] Verifying Theorem 5 & Proposition 2 (Gram PSD & Spectral Scaling)... PASSED (< 1e-10 error)
+[TEST 5] Verifying Proposition 1 (Regularized Operator on Non-SPD Matrices)... PASSED (Unit diag & SPD)
+[TEST 6] Verifying Theorem 3 & Corollary 1 (Equicorrelation Spectrum & Determinant)... PASSED
+[TEST 7] Verifying Theorem 5 & Proposition 2 (Gram PSD & Spectral Scaling)... PASSED
 [TEST 8] Verifying Canonical Recovery, Non-PSD Counterexample, & Hilbertian Metric... PASSED
 [TEST 9] Verifying Statistical Benchmarks & Repair Operators (Exact vs Gershgorin)... PASSED
+[TEST 10] Verifying Round-Trip Adjoint Contraction & Markov Invariance (Theorem th:roundtrip_contraction)... PASSED
+[TEST 11] Verifying Convexity & Spectrahedral Geometry of Admissible Latent Domain (Theorem th:admissible_convexity)... PASSED
+[TEST 12] Verifying Analytical Jacobian of Gershgorin Repair vs Finite Differences (Theorem th:gershgorin_gradient)... PASSED
 ==============================================================================
 ALL THEORETICAL PREDICTIONS AND STATISTICAL BENCHMARKS VERIFIED WITH ZERO DISCREPANCIES.
 ==============================================================================

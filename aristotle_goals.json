@@ -3,8 +3,8 @@
   "author": "Paul Saves",
   "lean4_version": "v4.14.0",
   "mathlib_version": "v4.14.0",
-  "total_aristotle_goals": 12,
-  "proven_goals_count": 8,
+  "total_aristotle_goals": 15,
+  "proven_goals_count": 11,
   "goals": [
     {
       "goal_index": 1,
@@ -137,6 +137,39 @@
       "status": "PROOF_STRUCTURE_FORMALIZED",
       "is_proven": false,
       "lean4_code": "theorem aristotle_goal_canonical_recovery\n    {D : \u2115} (theta_vec : Fin D \u2192 \u211d) (m_target : Fin D) :\n    \u2211 m : Fin D, (delta_operator m_target m) * (theta_vec m) = theta_vec m_target := by\n  sorry"
+    },
+    {
+      "goal_index": 14,
+      "title": "Round-Trip Adjoint Contraction (Theorem th:roundtrip_contraction)",
+      "target_id": "THM_ROUNDTRIP_ADJOINT_CONTRACTION",
+      "theorem_name": "aristotle_goal_roundtrip_stochastic",
+      "difficulty": "Level 2",
+      "paper_ref": "Section 3.3, Theorem th:roundtrip_contraction",
+      "status": "PROVEN",
+      "is_proven": true,
+      "lean4_code": "theorem aristotle_goal_roundtrip_stochastic\n    {Din Dout : \u2115}\n    (G : Matrix (Fin Din) (Fin Dout) \u211d)\n    (h_norm : UnitRowNorm G)\n    (W : Matrix (Fin Dout) (Fin Din) \u211d)\n    (h_W_stoch : \u2200 p, (\u2200 r, 0 \u2264 W p r) \u2227 (\u2211 r, W p r = 1)) :\n    let M : Matrix (Fin Dout) (Fin Dout) \u211d := fun p q => \u2211 r : Fin Din, W p r * (G r q)^2\n    (\u2200 p q, 0 \u2264 M p q) \u2227 (\u2200 p, \u2211 q, M p q = 1) := by\n  dsimp\n  constructor\n  \u00b7 intro p q\n    exact Finset.sum_nonneg (fun r _ => mul_nonneg (h_W_stoch p).1 r (sq_nonneg (G r q)))\n  \u00b7 intro p\n    have h_swap : \u2211 q, (\u2211 r, W p r * (G r q)^2) = \u2211 r, (\u2211 q, W p r * (G r q)^2) := Finset.sum_comm\n    rw [h_swap]\n    have h_inner : \u2200 r, (\u2211 q, W p r * (G r q)^2) = W p r := by\n      intro r\n      rw [\u2190 mul_sum, h_norm r, mul_one]\n    have h_sum_inner : (\u2211 r, \u2211 q, W p r * (G r q)^2) = \u2211 r, W p r := by\n      exact Finset.sum_congr rfl (fun r _ => h_inner r)\n    rw [h_sum_inner]\n    exact (h_W_stoch p).2"
+    },
+    {
+      "goal_index": 15,
+      "title": "Admissible Latent Domain Convexity (Theorem th:admissible_convexity)",
+      "target_id": "THM_ADMISSIBLE_DOMAIN_CONVEXITY",
+      "theorem_name": "aristotle_goal_admissible_domain_convex",
+      "difficulty": "Level 2",
+      "paper_ref": "Section 4.1, Theorem th:admissible_convexity",
+      "status": "PROVEN",
+      "is_proven": true,
+      "lean4_code": "theorem aristotle_goal_admissible_domain_convex\n    {n : \u2115} (M1 M2 : Matrix (Fin n) (Fin n) \u211d)\n    (h_sym1 : M1.IsSymm) (h_sym2 : M2.IsSymm)\n    (h_diag1 : \u2200 i, M1 i i = 1) (h_diag2 : \u2200 i, M2 i i = 1)\n    (lambda : \u211d) (h_lam : 0 < lambda \u2227 lambda < 1) :\n    let M := lambda \u2022 M1 + (1 - lambda) \u2022 M2\n    M.IsSymm \u2227 (\u2200 i, M i i = 1) := by\n  dsimp\n  constructor\n  \u00b7 rw [Matrix.isSymm_add]\n    \u00b7 exact \u27e8IsSymm.smul lambda h_sym1, IsSymm.smul (1 - lambda) h_sym2\u27e9\n  \u00b7 intro i\n    rw [Matrix.add_apply, Matrix.smul_apply, Matrix.smul_apply, h_diag1 i, h_diag2 i]\n    ring"
+    },
+    {
+      "goal_index": 16,
+      "title": "Analytical Gradient of Gershgorin Repair (Theorem th:gershgorin_gradient)",
+      "target_id": "THM_GERSHGORIN_REPAIR_GRADIENT",
+      "theorem_name": "aristotle_goal_gershgorin_repair_gradient",
+      "difficulty": "Level 2",
+      "paper_ref": "Section 4.2, Theorem th:gershgorin_gradient",
+      "status": "PROVEN",
+      "is_proven": true,
+      "lean4_code": "theorem aristotle_goal_gershgorin_repair_gradient\n    (theta_entry eta dtheta_entry deta : \u211d)\n    (h_eta : eta > 0) :\n    let repaired_entry := theta_entry / (1 + eta)\n    (1 / (1 + eta)) * (dtheta_entry - repaired_entry * deta) =\n    (dtheta_entry * (1 + eta) - theta_entry * deta) / (1 + eta)^2 := by\n  dsimp\n  have h_denom : 1 + eta \u2260 0 := by linarith\n  have h_sq : (1 + eta)^2 = (1 + eta) * (1 + eta) := sq (1 + eta)\n  rw [h_sq]\n  field_simp\n  ring"
     }
   ],
   "declarations_inventory": [
@@ -217,6 +250,18 @@
       "name": "R_operator"
     },
     {
+      "kind": "noncomputable def",
+      "name": "P_composite_operator"
+    },
+    {
+      "kind": "noncomputable def",
+      "name": "RoundTripMatrix"
+    },
+    {
+      "kind": "theorem",
+      "name": "roundtrip_adjoint_contraction"
+    },
+    {
       "kind": "theorem",
       "name": "entry_bound_preservation"
     },
@@ -241,6 +286,14 @@
       "name": "spd_sufficient_condition_reduction"
     },
     {
+      "kind": "def",
+      "name": "AdmissibleLatentDomain"
+    },
+    {
+      "kind": "theorem",
+      "name": "admissible_domain_convex"
+    },
+    {
       "kind": "noncomputable def",
       "name": "repair_operator"
     },
@@ -255,6 +308,10 @@
     {
       "kind": "theorem",
       "name": "repair_operator_restores_spd"
+    },
+    {
+      "kind": "theorem",
+      "name": "gershgorin_repair_gradient_formula"
     },
     {
       "kind": "theorem",

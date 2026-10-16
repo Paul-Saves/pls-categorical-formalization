@@ -2,7 +2,8 @@
 Comprehensive Numerical Verification of all Theorems and Lemmas in main.tex
 =============================================================================
 Companion verification script for:
-"On the Positive Definiteness of Partial Least Squares Transformations for Categorical Correlation Matrices"
+"Partial Least Squares for Qualitative Correlation Matrices:
+ Geometry, Invariance, and Fast Spectral Repair"
 Author: Paul Saves
 """
 
@@ -399,7 +400,148 @@ for _ in range(50):
     assert eta_ge >= eta_ex - 1e-12, "Gershgorin bound must dominate or equal exact shift"
 print(" PASSED (All repair operators and statistical benchmarks verified)")
 
+# -------------------------------------------------------------------------
+# Test 10: Round-Trip Adjoint Contraction and Invariant Equicorrelation (Theorem th:roundtrip_contraction)
+# -------------------------------------------------------------------------
+print("[TEST 10] Verifying Round-Trip Adjoint Contraction & Markov Invariance (Theorem th:roundtrip_contraction)...", end="")
+np.random.seed(42)
+for _ in range(30):
+    G_raw = np.random.randn(D_in, D_out)
+    G_star = G_raw / np.linalg.norm(G_raw, axis=1, keepdims=True)
+    G_sq = G_star ** 2
+
+    # Canonical row-stochastic adjoint W (D_out x D_in)
+    col_sums = np.sum(G_sq, axis=0, keepdims=True)
+    W = (G_sq / col_sums).T  # shape (D_out, D_in)
+    assert np.allclose(np.sum(W, axis=1), 1.0, atol=1e-14), "W must be strictly row-stochastic"
+
+    # Transition matrix M = W (G_* \odot G_*) (D_out x D_out)
+    M = W @ G_sq
+    assert np.all(M >= -1e-15), "M entries must be non-negative"
+    assert np.allclose(np.sum(M, axis=1), 1.0, atol=1e-14), "M must be strictly row-stochastic"
+
+    # Spectrum of M
+    eigs_M = np.linalg.eigvals(M)
+    eigs_sorted = np.sort(np.abs(eigs_M))[::-1]
+    assert np.isclose(eigs_sorted[0], 1.0, atol=1e-12), f"Leading eigenvalue must be 1.0, got {eigs_sorted[0]}"
+    assert eigs_sorted[1] < 1.0 - 1e-4, f"Second eigenvalue must be strictly < 1 (spectral gap), got {eigs_sorted[1]}"
+
+    # Exact equicorrelation fixed point
+    rho_val = 0.42
+    theta_equi = np.full(D_out, rho_val)
+    theta_proj = M @ theta_equi
+    assert np.allclose(theta_proj, theta_equi, atol=1e-14), "Equicorrelation must be an exact fixed point"
+
+    # Dispersion contraction
+    for _ in range(10):
+        theta_rand = np.random.uniform(-0.5, 0.8, size=D_out)
+        theta_next = M @ theta_rand
+        spread_orig = np.max(theta_rand) - np.min(theta_rand)
+        spread_next = np.max(theta_next) - np.min(theta_next)
+        assert spread_next <= spread_orig + 1e-14, "Dispersion spread must strictly contract"
+print(" PASSED (Row-stochasticity, spectral gap, and fixed point verified)")
+
+# -------------------------------------------------------------------------
+# Test 11: Convexity and Spectrahedral Geometry of Admissible Domain (Theorem th:admissible_convexity)
+# -------------------------------------------------------------------------
+print("[TEST 11] Verifying Convexity & Spectrahedral Geometry of Admissible Latent Domain (Theorem th:admissible_convexity)...", end="")
+np.random.seed(42)
+admissible_matrices = []
+G_raw = np.random.randn(D_in, D_out)
+G_star = G_raw / np.linalg.norm(G_raw, axis=1, keepdims=True)
+
+# Generate admissible pairs in A_L
+while len(admissible_matrices) < 40:
+    # Generate small random correlations near identity
+    Th_hat = np.eye(ell)
+    for t in range(ell):
+        for tp in range(t + 1, ell):
+            val = np.random.uniform(-0.05, 0.05)
+            Th_hat[t, tp] = val
+            Th_hat[tp, t] = val
+    if np.min(np.linalg.eigvalsh(Th_hat)) > 0:
+        Th_full = T_operator(G_star, Th_hat, L, ell)
+        if np.min(np.linalg.eigvalsh(Th_full)) > 0:
+            admissible_matrices.append(Th_hat)
+
+# Verify convexity for random convex combinations
+for i in range(len(admissible_matrices) - 1):
+    Th_1 = admissible_matrices[i]
+    Th_2 = admissible_matrices[i + 1]
+    for lam in [0.1, 0.25, 0.5, 0.75, 0.9]:
+        Th_lam = lam * Th_1 + (1.0 - lam) * Th_2
+        assert np.min(np.linalg.eigvalsh(Th_lam)) > 0, "Latent matrix must remain in C_ell"
+        Th_recon = T_operator(G_star, Th_lam, L, ell)
+        assert np.min(np.linalg.eigvalsh(Th_recon)) > 0, "Reconstructed matrix must remain strictly SPD in C_L"
+print(" PASSED (Zero non-convex traps across all convex combinations)")
+
+# -------------------------------------------------------------------------
+# Test 12: Analytical Jacobian of Fast Gershgorin Repair (Theorem th:gershgorin_gradient)
+# -------------------------------------------------------------------------
+print("[TEST 12] Verifying Analytical Jacobian of Gershgorin Repair vs Finite Differences (Theorem th:gershgorin_gradient)...", end="")
+np.random.seed(42)
+eps_val = 1e-4
+
+def eval_repaired(theta_vec, G_star, L_dim, ell_dim, eps):
+    Th_hat = np.eye(ell_dim)
+    for p in range(len(theta_vec)):
+        t, tp = psi_inv(p, ell_dim)
+        Th_hat[t, tp] = theta_vec[p]
+        Th_hat[tp, t] = theta_vec[p]
+    Th = T_operator(G_star, Th_hat, L_dim, ell_dim)
+    row_sums = np.sum(np.abs(Th), axis=1) - 1.0
+    j_star = int(np.argmax(row_sums))
+    max_sum = float(row_sums[j_star])
+    eta = max(0.0, max_sum - 1.0 + eps)
+    Th_spd = (Th + eta * np.eye(L_dim)) / (1.0 + eta)
+    return Th, Th_spd, eta, j_star
+
+# Test analytical vs finite-difference gradients in active repair regime
+G_raw = np.random.randn(D_in, D_out)
+G_star = G_raw / np.linalg.norm(G_raw, axis=1, keepdims=True)
+theta_test = np.random.uniform(-0.8, -0.2, size=D_out)  # Generic chamber interior with unique j_star
+
+Th_base, Th_spd_base, eta_base, j_star = eval_repaired(theta_test, G_star, L, ell, eps_val)
+assert eta_base > 0, "Must be in active regularization regime"
+
+# Analytical derivative
+h = 1e-7
+for p in range(D_out):
+    # Analytical deta/dtheta_p
+    deta_dtheta_p = 0.0
+    for jp in range(L):
+        if jp != j_star:
+            sgn = np.sign(Th_base[j_star, jp])
+            r = psi(min(j_star, jp), max(j_star, jp), L)
+            deta_dtheta_p += sgn * (G_star[r, p] ** 2)
+
+    # Numerical deta/dtheta_p via central differences
+    theta_plus = theta_test.copy()
+    theta_plus[p] += h
+    _, _, eta_plus, _ = eval_repaired(theta_plus, G_star, L, ell, eps_val)
+
+    theta_minus = theta_test.copy()
+    theta_minus[p] -= h
+    _, _, eta_minus, _ = eval_repaired(theta_minus, G_star, L, ell, eps_val)
+
+    num_deta = (eta_plus - eta_minus) / (2.0 * h)
+    assert np.isclose(deta_dtheta_p, num_deta, rtol=1e-4, atol=1e-5), f"deta/dtheta discrepancy: {deta_dtheta_p} vs {num_deta}"
+
+    # Check entrywise gradient of Th_spd for a sample pair (j, j')
+    j_chk, jp_chk = 0, 1
+    r_chk = psi(j_chk, jp_chk, L)
+    dTh_p = G_star[r_chk, p] ** 2
+    ana_dentry = (1.0 / (1.0 + eta_base)) * (dTh_p - Th_spd_base[j_chk, jp_chk] * deta_dtheta_p)
+
+    _, Th_spd_plus, _, _ = eval_repaired(theta_plus, G_star, L, ell, eps_val)
+    _, Th_spd_minus, _, _ = eval_repaired(theta_minus, G_star, L, ell, eps_val)
+    num_dentry = (Th_spd_plus[j_chk, jp_chk] - Th_spd_minus[j_chk, jp_chk]) / (2.0 * h)
+
+    assert np.isclose(ana_dentry, num_dentry, rtol=1e-4, atol=1e-5), f"Entrywise gradient discrepancy: {ana_dentry} vs {num_dentry}"
+print(" PASSED (Analytical gradients match finite differences to < 1e-5)")
+
 print("\n" + "=" * 78)
 print("ALL THEORETICAL PREDICTIONS AND STATISTICAL BENCHMARKS VERIFIED WITH ZERO DISCREPANCIES.")
 print("=" * 78)
+
 

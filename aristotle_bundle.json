@@ -1,6 +1,6 @@
 {
   "manuscript": {
-    "title": "On the Positive Definiteness of Partial Least Squares Transformations for Correlation Matrices",
+    "title": "Partial Least Squares for Qualitative Correlation Matrices: Geometry, Invariance, and Fast Spectral Repair",
     "author": "Paul Saves",
     "version": "2.0-formal",
     "target_formal_languages": ["Lean4", "Aristotle-ATP", "SMT-LIB2"]
