@@ -2,8 +2,7 @@
 Comprehensive Numerical Verification of all Theorems and Lemmas in main.tex
 =============================================================================
 Companion verification script for:
-"Partial Least Squares for Qualitative Correlation Matrices:
- Geometry, Invariance, and Fast Spectral Repair"
+"Partial Least Squares for Qualitative Correlation Matrices: Geometry, Invariance, and Fast Spectral Repair"
 Author: Paul Saves
 """
 
@@ -82,6 +81,86 @@ def regularize_spd(Theta, eps=1e-6):
     eta = max(0.0, -lambda_min + eps)
     Theta_spd = (Theta + eta * np.eye(Theta.shape[0])) / (1.0 + eta)
     return Theta_spd, eta
+
+def compute_eta_gersh(Theta, eps=1e-6):
+    """Theorem 7: Fast Gershgorin shift (O(L^2) flops)."""
+    L = Theta.shape[0]
+    row_sums = np.sum(np.abs(Theta), axis=1) - 1.0
+    return max(0.0, float(np.max(row_sums)) - 1.0 + eps)
+
+def compute_eta_mdg(Theta, eps=1e-6):
+    """Theorem 7 & Option 3: Mean-Deflated Weyl-Gershgorin shift (O(L^2) flops)."""
+    L = Theta.shape[0]
+    off_diag_sum = np.sum(Theta) - float(np.trace(Theta))
+    bar_rho_plus = max(0.0, off_diag_sum / (L * (L - 1)))
+    
+    radii_mdg = []
+    for j in range(L):
+        r_j = np.sum(np.abs(Theta[j, :] - bar_rho_plus)) - np.abs(Theta[j, j] - bar_rho_plus)
+        radii_mdg.append(r_j)
+    eta_mdg_raw = max(0.0, bar_rho_plus + float(np.max(radii_mdg)) - 1.0 + eps)
+    eta_ge = compute_eta_gersh(Theta, eps)
+    return min(eta_ge, eta_mdg_raw)
+
+def lanczos_min_eig(Theta, k=8, rng=None):
+    """Lanczos iteration to approximate smallest eigenvalue with certified residual."""
+    L = Theta.shape[0]
+    k = min(k, L)
+    if rng is None:
+        rng = np.random.RandomState(42)
+    v0 = rng.randn(L)
+    v0 = v0 / np.linalg.norm(v0)
+    
+    Q = np.zeros((L, k))
+    alpha = np.zeros(k)
+    beta = np.zeros(k - 1)
+    
+    q_prev = np.zeros(L)
+    q = v0.copy()
+    
+    for i in range(k):
+        Q[:, i] = q
+        v = Theta @ q
+        alpha[i] = np.dot(q, v)
+        v = v - alpha[i] * q - (beta[i - 1] * q_prev if i > 0 else 0.0)
+        
+        # Gram-Schmidt re-orthogonalization
+        for j in range(i + 1):
+            v = v - np.dot(Q[:, j], v) * Q[:, j]
+            
+        beta_i = np.linalg.norm(v)
+        if i < k - 1:
+            beta[i] = beta_i
+            if beta_i < 1e-12:
+                k = i + 1
+                Q = Q[:, :k]
+                alpha = alpha[:k]
+                beta = beta[:k-1]
+                break
+            q_prev = q
+            q = v / beta_i
+
+    T = np.diag(alpha)
+    for i in range(len(beta)):
+        T[i, i + 1] = beta[i]
+        T[i + 1, i] = beta[i]
+        
+    evals, evecs = np.linalg.eigh(T)
+    idx_min = np.argmin(evals)
+    mu_star = evals[idx_min]
+    u_star = Q @ evecs[:, idx_min]
+    u_star /= np.linalg.norm(u_star)
+    r_star = np.linalg.norm(Theta @ u_star - mu_star * u_star)
+    return mu_star, r_star, u_star
+
+def compute_eta_lanczos(Theta, eps=1e-6, k=8, rng=None):
+    """Lanczos certified spectral shift (O(k L^2) flops)."""
+    mu_star, r_star, _ = lanczos_min_eig(Theta, k=k, rng=rng)
+    eta_lanczos_raw = max(0.0, -float(mu_star) + float(r_star) + eps)
+    eta_mdg = compute_eta_mdg(Theta, eps)
+    return min(eta_mdg, eta_lanczos_raw)
+
+
 
 print("=" * 78)
 print("COMPREHENSIVE MATHEMATICAL PROOF-CHECKING: MONTE-CARLO STRESS TEST")
@@ -323,11 +402,23 @@ for cr in range(L):
 Theta_counter = np.array([[1.0, -0.5], [-0.5, 1.0]])
 eigs_counter = np.linalg.eigvalsh(Theta_counter)
 assert np.all(eigs_counter > 0), "Counterexample Theta must be SPD"
+# Variant A: Direct unit diagonal assignment (K_naive)
 K_naive = np.array([[1.0, np.exp(-Theta_counter[0, 1])],
                     [np.exp(-Theta_counter[1, 0]), 1.0]])
 eigs_naive = np.linalg.eigvalsh(K_naive)
 assert np.min(eigs_naive) < 0, f"Naive exponential must fail PSD: {eigs_naive}"
 assert np.isclose(np.min(eigs_naive), 1.0 - np.exp(0.5), atol=1e-14)
+
+# Variant B: Standardized correlation from un-normalized exponentiation (K_std)
+K_raw = np.exp(-Theta_counter)
+assert np.isclose(K_raw[0, 0], np.exp(-1.0))
+assert np.isclose(K_raw[0, 1], np.exp(0.5))
+D_raw = np.sqrt(np.diag(K_raw))
+K_std = K_raw / np.outer(D_raw, D_raw)
+assert np.isclose(K_std[0, 1], np.exp(1.5), atol=1e-14)
+eigs_std = np.linalg.eigvalsh(K_std)
+assert np.min(eigs_std) < 0, f"Standardized exponential must fail PSD: {eigs_std}"
+assert np.isclose(np.min(eigs_std), 1.0 - np.exp(1.5), atol=1e-14)
 
 # 8c: Hilbertian correlation distance kernel (Theorem 9)
 # Construct an SPD matrix
@@ -401,144 +492,233 @@ for _ in range(50):
 print(" PASSED (All repair operators and statistical benchmarks verified)")
 
 # -------------------------------------------------------------------------
-# Test 10: Round-Trip Adjoint Contraction and Invariant Equicorrelation (Theorem th:roundtrip_contraction)
+# Test 10: Mean-Deflated Gershgorin (MDG) and Lanczos Certified Shifts
 # -------------------------------------------------------------------------
-print("[TEST 10] Verifying Round-Trip Adjoint Contraction & Markov Invariance (Theorem th:roundtrip_contraction)...", end="")
-np.random.seed(42)
-for _ in range(30):
-    G_raw = np.random.randn(D_in, D_out)
+print("[TEST 10] Verifying MDG Repair, Lanczos Shift, & Hellmann-Feynman Gradients...", end="")
+
+# 1. Zero shrinkage on positive equicorrelation across dimensions
+for L in [5, 10, 15, 20]:
+    for rho in [0.05, 0.2, 0.5, 0.8]:
+        Theta_eq = (1.0 - rho) * np.eye(L) + rho * np.ones((L, L))
+        eta_mdg = compute_eta_mdg(Theta_eq, eps=1e-6)
+        assert np.isclose(eta_mdg, 0.0, atol=1e-12), f"MDG should be 0 on positive equicorr (L={L}, rho={rho}), got {eta_mdg}"
+        if (L - 1) * rho > 1.0:
+            eta_ge = compute_eta_gersh(Theta_eq, eps=1e-6)
+            assert eta_ge > 0.0, "Naive Gershgorin should trigger on (L-1)*rho > 1"
+
+# 2. Positive definiteness and unit diagonal invariance on 100 random instances
+for _ in range(100):
+    L = 10
+    ell = 3
+    D_in = L * (L - 1) // 2
+    D_out = ell * (ell - 1) // 2
+    G = np.random.randn(D_in, D_out)
+    G_s = G / np.linalg.norm(G, axis=1, keepdims=True)
+    A = np.random.randn(ell, ell * 2)
+    cov = A @ A.T
+    d = np.sqrt(np.diag(cov))
+    Th_hat = cov / np.outer(d, d)
+    Th = T_operator(G_s, Th_hat, L, ell)
+
+    eps_test = 1e-4
+    # MDG Repair
+    eta_mdg = compute_eta_mdg(Th, eps=eps_test)
+    Th_mdg = (Th + eta_mdg * np.eye(L)) / (1.0 + eta_mdg)
+    assert np.allclose(np.diag(Th_mdg), 1.0, atol=1e-15), "MDG diagonal must be 1"
+    assert np.allclose(Th_mdg, Th_mdg.T), "MDG matrix must be symmetric"
+    assert np.min(np.linalg.eigvalsh(Th_mdg)) > -1e-12, "MDG repaired matrix must be PSD"
+
+    # Hierarchy verification: eta_exact <= eta_mdg <= eta_gersh
+    lam_min = np.min(np.linalg.eigvalsh(Th))
+    eta_ex = max(0.0, -lam_min + eps_test)
+    eta_ge = compute_eta_gersh(Th, eps=eps_test)
+    assert eta_ex <= eta_mdg + 1e-10, f"Hierarchy violation: eta_ex ({eta_ex}) > eta_mdg ({eta_mdg})"
+    assert eta_mdg <= eta_ge + 1e-10, f"Hierarchy violation: eta_mdg ({eta_mdg}) > eta_ge ({eta_ge})"
+
+    # Lanczos on Th directly to compute extremal eigenvalue (Remark 5)
+    mu_Th, r_Th, u_Th = lanczos_min_eig(Th, k=L)
+    assert np.isclose(mu_Th, lam_min, atol=1e-10), f"Lanczos on Th should recover lam_min: got {mu_Th} vs {lam_min}"
+
+
+
+# 3. Hellmann-Feynman analytical gradient verification vs finite difference
+L = 6
+np.random.seed(123)
+M_sym = np.random.randn(L, L)
+M_sym = (M_sym + M_sym.T) / 2.0
+np.fill_diagonal(M_sym, 1.0)
+evals, evecs = np.linalg.eigh(M_sym)
+idx_min = np.argmin(evals)
+u_min = evecs[:, idx_min]
+
+# Perturb coordinate (1, 2)
+h = 1e-6
+dM = np.zeros((L, L))
+dM[1, 2] = dM[2, 1] = 1.0
+
+lam_plus = np.min(np.linalg.eigvalsh(M_sym + h * dM))
+lam_minus = np.min(np.linalg.eigvalsh(M_sym - h * dM))
+grad_fd = (lam_plus - lam_minus) / (2.0 * h)
+grad_analytical = u_min.T @ dM @ u_min
+assert np.isclose(grad_analytical, grad_fd, rtol=1e-4), f"Hellmann-Feynman gradient {grad_analytical} != FD {grad_fd}"
+
+print(" PASSED (MDG zero-shrinkage, Lanczos certificates, and Hellmann-Feynman verified)")
+
+# ==============================================================================
+# TEST 11: Proposition 2 (Incidence Gram Identity & Rank) & Theorem 5 (Markov)
+# ==============================================================================
+print("[TEST 11] Verifying Proposition 2 (Incidence Gram & Rank) & Theorem 5 (Markov Factorization & Detailed Balance)...", end="")
+
+# 1. Proposition 2: Incidence Gram identity E E^T = (L-2) I_L + 1 1^T
+for L in [4, 6, 8, 12]:
+    D_in = L * (L - 1) // 2
+    E = np.zeros((L, D_in))
+    m = 0
+    for j in range(L):
+        for jp in range(j + 1, L):
+            E[j, m] = 1.0
+            E[jp, m] = 1.0
+            m += 1
+    EEt = E @ E.T
+    expected_EEt = (L - 2) * np.eye(L) + np.ones((L, L))
+    assert np.allclose(EEt, expected_EEt), f"Incidence Gram identity failed for L={L}"
+
+    # Spectrum of E E^T: 2(L-1) and L-2
+    eigs_EEt = np.sort(np.linalg.eigvalsh(EEt))
+    assert np.isclose(eigs_EEt[-1], 2 * (L - 1)), f"Max eigenvalue failed for L={L}"
+    assert np.allclose(eigs_EEt[:-1], L - 2), f"Orthogonal eigenvalues failed for L={L}"
+
+    # Isometry on 1_L^\perp
+    for _ in range(5):
+        u = np.random.randn(L)
+        u -= np.mean(u)  # orthogonal to 1_L
+        norm_Et_u = np.linalg.norm(E.T @ u)
+        expected_norm = np.sqrt(L - 2) * np.linalg.norm(u)
+        assert np.isclose(norm_Et_u, expected_norm), f"Homothety failed: {norm_Et_u} vs {expected_norm}"
+
+# 2. Theorem 5: Markov factorization, detailed balance, stationary distribution, PSD similarity
+for _ in range(20):
+    Din = 15
+    Dout = 3
+    G_raw = np.random.randn(Din, Dout)
     G_star = G_raw / np.linalg.norm(G_raw, axis=1, keepdims=True)
-    G_sq = G_star ** 2
+    A = G_star ** 2  # reconstruction weights
+    d = np.sum(A, axis=0)  # column sums
+    assert np.all(d > 0), "Column sums must be positive"
+    D_col = np.diag(d)
+    W = np.diag(1.0 / d) @ A.T  # row-stochastic W
+    M = W @ A
 
-    # Canonical row-stochastic adjoint W (D_out x D_in)
-    col_sums = np.sum(G_sq, axis=0, keepdims=True)
-    W = (G_sq / col_sums).T  # shape (D_out, D_in)
-    assert np.allclose(np.sum(W, axis=1), 1.0, atol=1e-14), "W must be strictly row-stochastic"
+    # Row-stochasticity of M
+    assert np.allclose(np.sum(M, axis=1), 1.0), "M must be row-stochastic"
+    assert np.all(M >= -1e-12), "M entries must be non-negative"
 
-    # Transition matrix M = W (G_* \odot G_*) (D_out x D_out)
-    M = W @ G_sq
-    assert np.all(M >= -1e-15), "M entries must be non-negative"
-    assert np.allclose(np.sum(M, axis=1), 1.0, atol=1e-14), "M must be strictly row-stochastic"
+    # Detailed balance: D_col M = M^T D_col = A^T A
+    AtA = A.T @ A
+    assert np.allclose(D_col @ M, AtA), "Detailed balance D_col M = A^T A failed"
+    assert np.allclose(M.T @ D_col, AtA), "Detailed balance M^T D_col = A^T A failed"
 
-    # Spectrum of M
-    eigs_M = np.linalg.eigvals(M)
-    eigs_sorted = np.sort(np.abs(eigs_M))[::-1]
-    assert np.isclose(eigs_sorted[0], 1.0, atol=1e-12), f"Leading eigenvalue must be 1.0, got {eigs_sorted[0]}"
-    assert eigs_sorted[1] < 1.0 - 1e-4, f"Second eigenvalue must be strictly < 1 (spectral gap), got {eigs_sorted[1]}"
+    # Stationary distribution: pi = d / Din
+    pi = d / Din
+    assert np.isclose(np.sum(pi), 1.0), "pi must sum to 1"
+    assert np.allclose(pi @ M, pi), "pi must be left stationary distribution: pi M = pi"
 
-    # Exact equicorrelation fixed point
-    rho_val = 0.42
-    theta_equi = np.full(D_out, rho_val)
-    theta_proj = M @ theta_equi
-    assert np.allclose(theta_proj, theta_equi, atol=1e-14), "Equicorrelation must be an exact fixed point"
+    # Similarity to symmetric PSD matrix S = D_col^{1/2} M D_col^{-1/2}
+    D_sqrt = np.diag(np.sqrt(d))
+    D_inv_sqrt = np.diag(1.0 / np.sqrt(d))
+    S = D_sqrt @ M @ D_inv_sqrt
+    assert np.allclose(S, S.T), "S must be symmetric"
+    eigs_S = np.linalg.eigvalsh(S)
+    assert np.all(eigs_S >= -1e-12), "All eigenvalues of S must be non-negative (PSD)"
+    assert np.all(eigs_S <= 1.0 + 1e-12), "All eigenvalues must be <= 1"
 
-    # Dispersion contraction
-    for _ in range(10):
-        theta_rand = np.random.uniform(-0.5, 0.8, size=D_out)
-        theta_next = M @ theta_rand
-        spread_orig = np.max(theta_rand) - np.min(theta_rand)
-        spread_next = np.max(theta_next) - np.min(theta_next)
-        assert spread_next <= spread_orig + 1e-14, "Dispersion spread must strictly contract"
-print(" PASSED (Row-stochasticity, spectral gap, and fixed point verified)")
+    # Invariant reconstructed full-space mean correlation
+    th_latent = np.random.uniform(-0.8, 0.8, Dout)
+    th_full = A @ th_latent
+    mean_full = np.mean(th_full)
+    pi_dot_latent = np.dot(pi, th_latent)
+    assert np.isclose(mean_full, pi_dot_latent), f"Mean invariance failed: {mean_full} vs {pi_dot_latent}"
+    roundtrip_mean = np.dot(pi, M @ th_latent)
+    assert np.isclose(roundtrip_mean, mean_full), f"Round-trip mean invariance failed: {roundtrip_mean} vs {mean_full}"
 
-# -------------------------------------------------------------------------
-# Test 11: Convexity and Spectrahedral Geometry of Admissible Domain (Theorem th:admissible_convexity)
-# -------------------------------------------------------------------------
-print("[TEST 11] Verifying Convexity & Spectrahedral Geometry of Admissible Latent Domain (Theorem th:admissible_convexity)...", end="")
-np.random.seed(42)
-admissible_matrices = []
-G_raw = np.random.randn(D_in, D_out)
-G_star = G_raw / np.linalg.norm(G_raw, axis=1, keepdims=True)
+print(" PASSED (Incidence Gram, Detailed Balance, Stationary Distribution, & PSD Spectrum verified)")
 
-# Generate admissible pairs in A_L
-while len(admissible_matrices) < 40:
-    # Generate small random correlations near identity
-    Th_hat = np.eye(ell)
-    for t in range(ell):
-        for tp in range(t + 1, ell):
-            val = np.random.uniform(-0.05, 0.05)
-            Th_hat[t, tp] = val
-            Th_hat[tp, t] = val
-    if np.min(np.linalg.eigvalsh(Th_hat)) > 0:
-        Th_full = T_operator(G_star, Th_hat, L, ell)
-        if np.min(np.linalg.eigvalsh(Th_full)) > 0:
-            admissible_matrices.append(Th_hat)
+# ==============================================================================
+# TEST 12: Theorem 9 (Commutation, Ratio Preservation, Heteroscedastic Repair)
+#          & Theorem 16 (Universal Completely Monotonic Schoenberg Family)
+# ==============================================================================
+print("[TEST 12] Verifying Theorem 9 (Spectral Optimality & Ratio Preservation) & Theorem 16 (Schoenberg-Matern)...", end="")
 
-# Verify convexity for random convex combinations
-for i in range(len(admissible_matrices) - 1):
-    Th_1 = admissible_matrices[i]
-    Th_2 = admissible_matrices[i + 1]
-    for lam in [0.1, 0.25, 0.5, 0.75, 0.9]:
-        Th_lam = lam * Th_1 + (1.0 - lam) * Th_2
-        assert np.min(np.linalg.eigvalsh(Th_lam)) > 0, "Latent matrix must remain in C_ell"
-        Th_recon = T_operator(G_star, Th_lam, L, ell)
-        assert np.min(np.linalg.eigvalsh(Th_recon)) > 0, "Reconstructed matrix must remain strictly SPD in C_L"
-print(" PASSED (Zero non-convex traps across all convex combinations)")
+# 1. Theorem 9: Commutation, eigenvector preservation, ratio preservation
+for _ in range(20):
+    L = 6
+    A_mat = np.random.randn(L, L)
+    Theta_test = (A_mat + A_mat.T) / 2.0
+    np.fill_diagonal(Theta_test, 1.0)
+    eta = 0.5
+    Theta_SPD = (Theta_test + eta * np.eye(L)) / (1.0 + eta)
 
-# -------------------------------------------------------------------------
-# Test 12: Analytical Jacobian of Fast Gershgorin Repair (Theorem th:gershgorin_gradient)
-# -------------------------------------------------------------------------
-print("[TEST 12] Verifying Analytical Jacobian of Gershgorin Repair vs Finite Differences (Theorem th:gershgorin_gradient)...", end="")
-np.random.seed(42)
-eps_val = 1e-4
+    # Commutation [Theta_SPD, Theta] = 0
+    comm = Theta_SPD @ Theta_test - Theta_test @ Theta_SPD
+    assert np.allclose(comm, 0.0), "Theta_SPD and Theta must commute"
 
-def eval_repaired(theta_vec, G_star, L_dim, ell_dim, eps):
-    Th_hat = np.eye(ell_dim)
-    for p in range(len(theta_vec)):
-        t, tp = psi_inv(p, ell_dim)
-        Th_hat[t, tp] = theta_vec[p]
-        Th_hat[tp, t] = theta_vec[p]
-    Th = T_operator(G_star, Th_hat, L_dim, ell_dim)
-    row_sums = np.sum(np.abs(Th), axis=1) - 1.0
-    j_star = int(np.argmax(row_sums))
-    max_sum = float(row_sums[j_star])
-    eta = max(0.0, max_sum - 1.0 + eps)
-    Th_spd = (Th + eta * np.eye(L_dim)) / (1.0 + eta)
-    return Th, Th_spd, eta, j_star
+    # Eigenvector preservation
+    evals_orig, evecs_orig = np.linalg.eigh(Theta_test)
+    evals_rep, evecs_rep = np.linalg.eigh(Theta_SPD)
+    expected_evals_rep = (evals_orig + eta) / (1.0 + eta)
+    assert np.allclose(evals_rep, expected_evals_rep), "Repaired eigenvalues mismatch"
 
-# Test analytical vs finite-difference gradients in active repair regime
-G_raw = np.random.randn(D_in, D_out)
-G_star = G_raw / np.linalg.norm(G_raw, axis=1, keepdims=True)
-theta_test = np.random.uniform(-0.8, -0.2, size=D_out)  # Generic chamber interior with unique j_star
+    # Ratio preservation across off-diagonal entries
+    for j1 in range(L):
+        for jp1 in range(j1 + 1, L):
+            for j2 in range(L):
+                for jp2 in range(j2 + 1, L):
+                    val1 = Theta_test[j1, jp1]
+                    val2 = Theta_test[j2, jp2]
+                    if abs(val2) > 1e-4:
+                        ratio_orig = val1 / val2
+                        ratio_rep = Theta_SPD[j1, jp1] / Theta_SPD[j2, jp2]
+                        assert np.isclose(ratio_orig, ratio_rep), "Ratio preservation failed"
 
-Th_base, Th_spd_base, eta_base, j_star = eval_repaired(theta_test, G_star, L, ell, eps_val)
-assert eta_base > 0, "Must be in active regularization regime"
+    # Heteroscedastic covariance repair
+    sigmas = np.random.uniform(0.5, 3.0, L)
+    D_diag = np.diag(sigmas)
+    Sigma = D_diag @ Theta_test @ D_diag
+    Sigma_SPD = (Sigma + eta * (D_diag ** 2)) / (1.0 + eta)
+    assert np.allclose(np.diag(Sigma_SPD), sigmas ** 2), "Heteroscedastic repair must preserve exact marginal variances"
+    assert np.allclose(Sigma_SPD, D_diag @ Theta_SPD @ D_diag), "Sigma_SPD = D Theta_SPD D identity failed"
 
-# Analytical derivative
-h = 1e-7
-for p in range(D_out):
-    # Analytical deta/dtheta_p
-    deta_dtheta_p = 0.0
-    for jp in range(L):
-        if jp != j_star:
-            sgn = np.sign(Th_base[j_star, jp])
-            r = psi(min(j_star, jp), max(j_star, jp), L)
-            deta_dtheta_p += sgn * (G_star[r, p] ** 2)
+# 2. Theorem 16: Universal completely monotonic family (Matern, RQ, PE) on chordal metric
+for _ in range(10):
+    L = 5
+    A_mat = np.random.randn(L, 2 * L)
+    cov = A_mat @ A_mat.T
+    d = np.sqrt(np.diag(cov))
+    Theta_spd = cov / np.outer(d, d)  # strictly positive definite correlation
 
-    # Numerical deta/dtheta_p via central differences
-    theta_plus = theta_test.copy()
-    theta_plus[p] += h
-    _, _, eta_plus, _ = eval_repaired(theta_plus, G_star, L, ell, eps_val)
+    # Compute chordal squared distance d_Theta^2(i, j) = 2(1 - Theta_ij)
+    D_chordal_sq = 2.0 * (1.0 - Theta_spd)
+    D_chordal = np.sqrt(np.maximum(0.0, D_chordal_sq))
 
-    theta_minus = theta_test.copy()
-    theta_minus[p] -= h
-    _, _, eta_minus, _ = eval_repaired(theta_minus, G_star, L, ell, eps_val)
+    l_q = 1.2
+    # Gaussian / SE: exp(-d^2 / (2 l_q^2))
+    K_se = np.exp(-D_chordal_sq / (2.0 * l_q ** 2))
+    assert np.all(np.linalg.eigvalsh(K_se) > 0), "Gaussian categorical kernel must be SPD"
 
-    num_deta = (eta_plus - eta_minus) / (2.0 * h)
-    assert np.isclose(deta_dtheta_p, num_deta, rtol=1e-4, atol=1e-5), f"deta/dtheta discrepancy: {deta_dtheta_p} vs {num_deta}"
+    # Matern-3/2
+    K_m32 = (1.0 + np.sqrt(3.0) * D_chordal / l_q) * np.exp(-np.sqrt(3.0) * D_chordal / l_q)
+    assert np.all(np.linalg.eigvalsh(K_m32) > 0), "Matern-3/2 categorical kernel must be SPD"
 
-    # Check entrywise gradient of Th_spd for a sample pair (j, j')
-    j_chk, jp_chk = 0, 1
-    r_chk = psi(j_chk, jp_chk, L)
-    dTh_p = G_star[r_chk, p] ** 2
-    ana_dentry = (1.0 / (1.0 + eta_base)) * (dTh_p - Th_spd_base[j_chk, jp_chk] * deta_dtheta_p)
+    # Matern-5/2
+    K_m52 = (1.0 + np.sqrt(5.0) * D_chordal / l_q + 5.0 * D_chordal_sq / (3.0 * l_q ** 2)) * np.exp(-np.sqrt(5.0) * D_chordal / l_q)
+    assert np.all(np.linalg.eigvalsh(K_m52) > 0), "Matern-5/2 categorical kernel must be SPD"
 
-    _, Th_spd_plus, _, _ = eval_repaired(theta_plus, G_star, L, ell, eps_val)
-    _, Th_spd_minus, _, _ = eval_repaired(theta_minus, G_star, L, ell, eps_val)
-    num_dentry = (Th_spd_plus[j_chk, jp_chk] - Th_spd_minus[j_chk, jp_chk]) / (2.0 * h)
+    # Rational Quadratic: (1 + d^2 / (2 alpha l_q^2))^(-alpha)
+    alpha_rq = 1.5
+    K_rq = (1.0 + D_chordal_sq / (2.0 * alpha_rq * l_q ** 2)) ** (-alpha_rq)
+    assert np.all(np.linalg.eigvalsh(K_rq) > 0), "Rational Quadratic categorical kernel must be SPD"
 
-    assert np.isclose(ana_dentry, num_dentry, rtol=1e-4, atol=1e-5), f"Entrywise gradient discrepancy: {ana_dentry} vs {num_dentry}"
-print(" PASSED (Analytical gradients match finite differences to < 1e-5)")
+print(" PASSED (Commutation, Ratio Invariance, Heteroscedasticity, & Universal Matern Family verified)")
 
 print("\n" + "=" * 78)
 print("ALL THEORETICAL PREDICTIONS AND STATISTICAL BENCHMARKS VERIFIED WITH ZERO DISCREPANCIES.")

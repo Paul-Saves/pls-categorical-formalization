@@ -1,10 +1,10 @@
 {
-  "manuscript_title": "On the Positive Definiteness of Partial Least Squares Transformations for Categorical Correlation Matrices",
+  "manuscript_title": "Partial Least Squares for Qualitative Correlation Matrices: Geometry, Invariance, and Fast Spectral Repair",
   "author": "Paul Saves",
   "lean4_version": "v4.14.0",
   "mathlib_version": "v4.14.0",
-  "total_aristotle_goals": 15,
-  "proven_goals_count": 11,
+  "total_aristotle_goals": 29,
+  "proven_goals_count": 17,
   "goals": [
     {
       "goal_index": 1,
@@ -12,7 +12,7 @@
       "target_id": "LEMMA_CONVEX_COMB_CONST",
       "theorem_name": "aristotle_goal_convex_comb_const",
       "difficulty": "Level 1",
-      "paper_ref": "Core Foundation",
+      "paper_ref": "Section 3.1, Foundation (Lemma)",
       "status": "PROVEN",
       "is_proven": true,
       "lean4_code": "theorem aristotle_goal_convex_comb_const {n : \u2115} (w : Fin n \u2192 \u211d) (c : \u211d)\n    (hw_sum : \u2211 i, w i = 1) :\n    \u2211 i, w i * c = c := by\n  rw [\u2190 sum_mul, hw_sum, one_mul]"
@@ -23,18 +23,18 @@
       "target_id": "LEMMA_CONVEX_COMB_ABS_LE",
       "theorem_name": "aristotle_goal_convex_comb_abs_le",
       "difficulty": "Level 2",
-      "paper_ref": "Core Foundation",
+      "paper_ref": "Section 3.1, Foundation (Lemma)",
       "status": "PROVEN",
       "is_proven": true,
       "lean4_code": "theorem aristotle_goal_convex_comb_abs_le {n : \u2115} (w x : Fin n \u2192 \u211d) (B : \u211d)\n    (hw_nonneg : \u2200 i, 0 \u2264 w i)\n    (hw_sum : \u2211 i, w i = 1)\n    (hx_le : \u2200 i, |x i| \u2264 B) :\n    |\u2211 i, w i * x i| \u2264 B := by\n  have h_bound : \u2200 i, - (w i * B) \u2264 w i * x i \u2227 w i * x i \u2264 w i * B := by\n    intro i\n    have hxi := abs_le.mp (hx_le i)\n    constructor\n    \u00b7 have h_mul := mul_le_mul_of_nonneg_left hxi.1 (hw_nonneg i)\n      linarith\n    \u00b7 exact mul_le_mul_of_nonneg_left hxi.2 (hw_nonneg i)\n  have h_upper : (\u2211 i, w i * x i) \u2264 B := by\n    calc (\u2211 i, w i * x i) \u2264 \u2211 i, w i * B := Finset.sum_le_sum (fun i _ => (h_bound i).2)\n    _ = B := aristotle_goal_convex_comb_const w B hw_sum\n  have h_lower : -B \u2264 \u2211 i, w i * x i := by\n    have h_neg_sum : -B = \u2211 i, - (w i * B) := by\n      calc -B = - (\u2211 i, w i * B) := by rw [aristotle_goal_convex_comb_const w B hw_sum]\n      _ = \u2211 i, - (w i * B) := by rw [\u2190 sum_neg_distrib]\n    rw [h_neg_sum]\n    exact Finset.sum_le_sum (fun i _ => (h_bound i).1)\n  exact abs_le.mpr \u27e8h_lower, h_upper\u27e9"
     },
     {
       "goal_index": 3,
-      "title": "Unit Row-Norm Convex Weights (Lemma 2)",
-      "target_id": "LEMMA_2_CONVEX_COMBINATION_WEIGHTS",
+      "title": "Unit Row-Norm Convex Weights (Lemma 3)",
+      "target_id": "LEMMA_3_CONVEX_COMBINATION_WEIGHTS",
       "theorem_name": "aristotle_goal_convex_weights",
       "difficulty": "Level 1",
-      "paper_ref": "Section 3.2, Lemma 2",
+      "paper_ref": "Section 3.1, Lemma 3 (lem:convex)",
       "status": "PROVEN",
       "is_proven": true,
       "lean4_code": "theorem aristotle_goal_convex_weights {Din Dout : \u2115} (G : Matrix (Fin Din) (Fin Dout) \u211d)\n    (h_norm : UnitRowNorm G) (r : Fin Din) :\n    (\u2200 c : Fin Dout, 0 \u2264 (G r c)^2) \u2227 (\u2211 c : Fin Dout, (G r c)^2 = 1) := by\n  exact \u27e8fun c => sq_nonneg (G r c), h_norm r\u27e9"
@@ -45,131 +45,285 @@
       "target_id": "LEMMA_3_ENTRY_BOUND_PRESERVATION",
       "theorem_name": "aristotle_goal_entry_bound",
       "difficulty": "Level 2",
-      "paper_ref": "Section 3.2, Lemma 3",
+      "paper_ref": "Section 3.2, Lemma 3 (lem:entry_bound)",
       "status": "PROVEN",
       "is_proven": true,
       "lean4_code": "theorem aristotle_goal_entry_bound\n    {Din Dout : \u2115}\n    (w : Fin Din \u2192 Fin Dout \u2192 \u211d)\n    (hw_nonneg : \u2200 r c, 0 \u2264 w r c)\n    (hw_sum : \u2200 r, \u2211 c, w r c = 1)\n    (theta_hat : Fin Dout \u2192 \u211d)\n    (h_bound : \u2200 c, |theta_hat c| \u2264 1) :\n    \u2200 r : Fin Din, |\u2211 c, w r c * theta_hat c| \u2264 1 := by\n  intro r\n  exact aristotle_goal_convex_comb_abs_le (w r) theta_hat 1 (hw_nonneg r) (hw_sum r) h_bound"
     },
     {
       "goal_index": 5,
+      "title": "Trivial Row Weight for Latent Dimension \u2113",
+      "target_id": "PROP_4_L2_TRIVIAL_WEIGHT",
+      "theorem_name": "aristotle_goal_l2_trivial_weight",
+      "difficulty": "Level 1",
+      "paper_ref": "Section 3.1, Proposition 4 (prop:l2_degeneracy)",
+      "status": "PROVEN",
+      "is_proven": true,
+      "lean4_code": "theorem aristotle_goal_l2_trivial_weight\n    {Din : \u2115} (G : Matrix (Fin Din) (Fin 1) \u211d)\n    (h_norm : UnitRowNorm G) (r : Fin Din) :\n    (G r 0)^2 = 1 := by\n  have h_univ : (Finset.univ : Finset (Fin 1)) = {0} := rfl\n  have h_sum : (\u2211 c : Fin 1, (G r c)^2) = (G r 0)^2 := by\n    change (\u2211 c \u2208 (Finset.univ : Finset (Fin 1)), (G r c)^2) = (G r 0)^2\n    rw [h_univ, Finset.sum_singleton]\n  rw [\u2190 h_sum]\n  exact h_norm r"
+    },
+    {
+      "goal_index": 6,
+      "title": "Degeneracy of RN-PLS for Latent Dimension \u2113",
+      "target_id": "PROP_4_L2_RN_PLS_EQUICORRELATION_COLLAPSE",
+      "theorem_name": "aristotle_goal_l2_degeneracy_equicorrelation_collapse",
+      "difficulty": "Level 2",
+      "paper_ref": "Section 3.1, Proposition 4 (prop:l2_degeneracy)",
+      "status": "PROVEN",
+      "is_proven": true,
+      "lean4_code": "theorem aristotle_goal_l2_degeneracy_equicorrelation_collapse\n    {Din : \u2115} (G : Matrix (Fin Din) (Fin 1) \u211d)\n    (h_norm : UnitRowNorm G) (rho : \u211d) (r : Fin Din) :\n    (\u2211 c : Fin 1, (G r c)^2 * rho) = rho := by\n  have h_univ : (Finset.univ : Finset (Fin 1)) = {0} := rfl\n  have h_sum : (\u2211 c : Fin 1, (G r c)^2 * rho) = (G r 0)^2 * rho := by\n    change (\u2211 c \u2208 (Finset.univ : Finset (Fin 1)), (G r c)^2 * rho) = (G r 0)^2 * rho\n    rw [h_univ, Finset.sum_singleton]\n  rw [h_sum]\n  have h_weight : (G r 0)^2 = 1 := aristotle_goal_l2_trivial_weight G h_norm r\n  rw [h_weight, one_mul]"
+    },
+    {
+      "goal_index": 7,
+      "title": "Incidence Gram Homothety on Centered Subspace (Proposition 2)",
+      "target_id": "PROP_2_INCIDENCE_GRAM_HOMOTHETY",
+      "theorem_name": "aristotle_goal_incidence_homothety",
+      "difficulty": "Level 2",
+      "paper_ref": "Section 2.3, Proposition 2 (prop:rank_bound)",
+      "status": "PROOF_STRUCTURE_FORMALIZED",
+      "is_proven": false,
+      "lean4_code": "theorem aristotle_goal_incidence_homothety\n    {L : \u2115} (M : Matrix (Fin L) (Fin L) \u211d)\n    (hM : \u2200 j k, M j k = (if j = k then (L : \u211d) - 2 else 0) + 1)\n    (u : Fin L \u2192 \u211d)\n    (hu_centered : \u2211 j, u j = 0) :\n    mulVec M u = ((L : \u211d) - 2) \u2022 u := by\n  sorry"
+    },
+    {
+      "goal_index": 8,
+      "title": "Incidence Gram All-Ones Eigenvalue (Proposition 2)",
+      "target_id": "PROP_2_INCIDENCE_ALL_ONES_EIGENVALUE",
+      "theorem_name": "aristotle_goal_incidence_all_ones_eigenvalue",
+      "difficulty": "Level 2",
+      "paper_ref": "Section 2.3, Proposition 2 (prop:rank_bound)",
+      "status": "PROOF_STRUCTURE_FORMALIZED",
+      "is_proven": false,
+      "lean4_code": "theorem aristotle_goal_incidence_all_ones_eigenvalue\n    {L : \u2115} (M : Matrix (Fin L) (Fin L) \u211d)\n    (hM : \u2200 j k, M j k = (if j = k then (L : \u211d) - 2 else 0) + 1) :\n    let ones : Fin L \u2192 \u211d := fun _ => 1\n    mulVec M ones = (2 * ((L : \u211d) - 1)) \u2022 ones := by\n  sorry"
+    },
+    {
+      "goal_index": 9,
+      "title": "Round-Trip Adjoint Markov Contraction and Fixed Point (Theorem 5)",
+      "target_id": "THM_5_ROUNDTRIP_ADJOINT_MARKOV_CONTRACTION",
+      "theorem_name": "aristotle_goal_roundtrip_stochastic_fixed_point",
+      "difficulty": "Level 2",
+      "paper_ref": "Section 3.2, Theorem 5 (th:roundtrip_contraction)",
+      "status": "PROVEN",
+      "is_proven": true,
+      "lean4_code": "theorem aristotle_goal_roundtrip_stochastic_fixed_point\n    {Din Dout : \u2115}\n    (W : Matrix (Fin Dout) (Fin Din) \u211d)\n    (G_sq : Matrix (Fin Din) (Fin Dout) \u211d)\n    (hW_nonneg : \u2200 p r, 0 \u2264 W p r)\n    (hW_sum : \u2200 p, \u2211 r : Fin Din, W p r = 1)\n    (hG_nonneg : \u2200 r q, 0 \u2264 G_sq r q)\n    (hG_sum : \u2200 r, \u2211 q : Fin Dout, G_sq r q = 1) :\n    let M : Matrix (Fin Dout) (Fin Dout) \u211d := fun p q => \u2211 r : Fin Din, W p r * G_sq r q\n    (\u2200 p q, 0 \u2264 M p q) \u2227\n    (\u2200 p, \u2211 q : Fin Dout, M p q = 1) \u2227\n    (\u2200 (rho : \u211d) (p : Fin Dout), \u2211 q : Fin Dout, M p q * rho = rho) := by\n  dsimp\n  have hM_nonneg : \u2200 p q, 0 \u2264 \u2211 r : Fin Din, W p r * G_sq r q := by\n    intro p q\n    apply Finset.sum_nonneg\n    intro r _\n    exact mul_nonneg (hW_nonneg p r) (hG_nonneg r q)\n  have hM_sum : \u2200 p, \u2211 q : Fin Dout, \u2211 r : Fin Din, W p r * G_sq r q = 1 := by\n    intro p\n    rw [Finset.sum_comm]\n    have h_inner : (\u2211 r : Fin Din, W p r * \u2211 q : Fin Dout, G_sq r q) = \u2211 r : Fin Din, W p r := by\n      apply Finset.sum_congr rfl\n      intro r _\n      rw [hG_sum r, mul_one]\n    calc \u2211 r : Fin Din, \u2211 q : Fin Dout, W p r * G_sq r q\n      _ = \u2211 r : Fin Din, (W p r * \u2211 q : Fin Dout, G_sq r q) := by\n        apply Finset.sum_congr rfl\n        intro r _\n        rw [\u2190 Finset.mul_sum]\n      _ = \u2211 r : Fin Din, W p r := h_inner\n      _ = 1 := hW_sum p\n  have hM_fixed : \u2200 (rho : \u211d) (p : Fin Dout), (\u2211 q : Fin Dout, (\u2211 r : Fin Din, W p r * G_sq r q) * rho) = rho := by\n    intro rho p\n    rw [\u2190 Finset.sum_mul]\n    rw [hM_sum p, one_mul]\n  exact \u27e8hM_nonneg, hM_sum, hM_fixed\u27e9"
+    },
+    {
+      "goal_index": 10,
+      "title": "Markov Detailed Balance Identity (Theorem 5)",
+      "target_id": "THM_5_MARKOV_DETAILED_BALANCE",
+      "theorem_name": "aristotle_goal_markov_detailed_balance",
+      "difficulty": "Level 2",
+      "paper_ref": "Section 3.2, Theorem 5 (th:roundtrip_contraction)",
+      "status": "PROOF_STRUCTURE_FORMALIZED",
+      "is_proven": false,
+      "lean4_code": "theorem aristotle_goal_markov_detailed_balance\n    {Din Dout : \u2115}\n    (A : Matrix (Fin Din) (Fin Dout) \u211d)\n    (d : Fin Dout \u2192 \u211d)\n    (hd_pos : \u2200 p, d p > 0)\n    (M : Matrix (Fin Dout) (Fin Dout) \u211d)\n    (hM_def : \u2200 p q, M p q = (1 / d p) * (\u2211 r : Fin Din, A r p * A r q)) :\n    \u2200 p q, d p * M p q = d q * M q p := by\n  sorry"
+    },
+    {
+      "goal_index": 11,
+      "title": "Closed-Form Stationary Distribution (Theorem 5)",
+      "target_id": "THM_5_MARKOV_STATIONARY_DISTRIBUTION",
+      "theorem_name": "aristotle_goal_markov_stationary_distribution",
+      "difficulty": "Level 2",
+      "paper_ref": "Section 3.2, Theorem 5 (th:roundtrip_contraction)",
+      "status": "PROOF_STRUCTURE_FORMALIZED",
+      "is_proven": false,
+      "lean4_code": "theorem aristotle_goal_markov_stationary_distribution\n    {Din Dout : \u2115}\n    (A : Matrix (Fin Din) (Fin Dout) \u211d)\n    (d : Fin Dout \u2192 \u211d)\n    (hd_pos : \u2200 p, d p > 0)\n    (hA_row_stoch : \u2200 r : Fin Din, \u2211 p : Fin Dout, A r p = 1)\n    (h_col_sum : \u2200 p, d p = \u2211 r : Fin Din, A r p)\n    (M : Matrix (Fin Dout) (Fin Dout) \u211d)\n    (hM_def : \u2200 p q, M p q = (1 / d p) * (\u2211 r : Fin Din, A r p * A r q)) :\n    \u2200 q : Fin Dout, (\u2211 p : Fin Dout, (d p) * M p q) = d q := by\n  sorry"
+    },
+    {
+      "goal_index": 12,
+      "title": "Invariant Reconstructed Full-Space Mean Correlation (Theorem 5)",
+      "target_id": "THM_5_MARKOV_INVARIANT_MEAN_CORRELATION",
+      "theorem_name": "aristotle_goal_markov_invariant_mean_correlation",
+      "difficulty": "Level 2",
+      "paper_ref": "Section 3.2, Theorem 5 (th:roundtrip_contraction)",
+      "status": "PROOF_STRUCTURE_FORMALIZED",
+      "is_proven": false,
+      "lean4_code": "theorem aristotle_goal_markov_invariant_mean_correlation\n    {Dout : \u2115}\n    (d : Fin Dout \u2192 \u211d)\n    (M : Matrix (Fin Dout) (Fin Dout) \u211d)\n    (h_stat : \u2200 p : Fin Dout, (\u2211 q : Fin Dout, d q * M q p) = d p)\n    (theta_hat : Fin Dout \u2192 \u211d) :\n    (\u2211 q : Fin Dout, d q * (\u2211 p : Fin Dout, M q p * theta_hat p)) =\n    \u2211 p : Fin Dout, d p * theta_hat p := by\n  sorry"
+    },
+    {
+      "goal_index": 13,
       "title": "Strict Diagonal Dominance",
-      "target_id": "THM_1_SPD_SUFFICIENT_CONDITION",
+      "target_id": "THM_7_SPD_SUFFICIENT_CONDITION",
       "theorem_name": "aristotle_goal_spd_from_dominance",
       "difficulty": "Level 3",
-      "paper_ref": "Section 4.1, Theorem 1",
+      "paper_ref": "Section 4.1, Theorem 7 (th:spd_condition)",
       "status": "PROOF_STRUCTURE_FORMALIZED",
       "is_proven": false,
       "lean4_code": "theorem aristotle_goal_spd_from_dominance\n    (L : \u2115) (A : Matrix (Fin L) (Fin L) \u211d)\n    (h_sym : A.IsSymm)\n    (h_diag : \u2200 i, A i i = 1)\n    (rho_max : \u211d)\n    (h_offdiag : \u2200 i j, i \u2260 j \u2192 |A i j| \u2264 rho_max)\n    (h_rho_bound : (L : \u211d) - 1 > 0 \u2227 rho_max < 1 / ((L : \u211d) - 1)) :\n    A.PosDef := by\n  sorry"
     },
     {
-      "goal_index": 6,
-      "title": "Sample Gram Matrix Positive Semidefiniteness (Proposition 2)",
-      "target_id": "PROP_2_SAMPLE_GRAM_PSD",
-      "theorem_name": "aristotle_goal_gram_psd",
-      "difficulty": "Level 3",
-      "paper_ref": "Section 5.1, Proposition 2",
+      "goal_index": 14,
+      "title": "Convexity of the Admissible Latent Domain (Theorem 8)",
+      "target_id": "THM_8_ADMISSIBLE_DOMAIN_CONVEX_SPECTRAHEDRON",
+      "theorem_name": "aristotle_goal_admissible_convexity",
+      "difficulty": "Level 2",
+      "paper_ref": "Section 4.2, Theorem 8 (th:admissible_convexity)",
       "status": "PROOF_STRUCTURE_FORMALIZED",
       "is_proven": false,
-      "lean4_code": "theorem aristotle_goal_gram_psd\n    {L nt : \u2115} (Theta : Matrix (Fin L) (Fin L) \u211d)\n    (h_posdef : Theta.PosDef)\n    (M : Matrix (Fin nt) (Fin L) \u211d) :\n    let K := M * Theta * M.transpose\n    K.PosSemidef := by\n  sorry"
+      "lean4_code": "theorem aristotle_goal_admissible_convexity\n    {n : \u2115} (A B : Matrix (Fin n) (Fin n) \u211d)\n    (hA : A.PosDef) (hB : B.PosDef)\n    (alpha : \u211d) (halpha0 : 0 \u2264 alpha) (halpha1 : alpha \u2264 1) :\n    ((1 - alpha) \u2022 A + alpha \u2022 B).PosDef := by\n  sorry"
     },
     {
-      "goal_index": 7,
-      "title": "Equicorrelation Spectrum & Determinant Scaling (Theorem 3)",
-      "target_id": "THM_3_EQUICORRELATION_SPECTRUM",
-      "theorem_name": "aristotle_goal_equicorrelation_eigenvalue",
-      "difficulty": "Level 3",
-      "paper_ref": "Section 4.3, Theorem 3",
-      "status": "PROOF_STRUCTURE_FORMALIZED",
-      "is_proven": false,
-      "lean4_code": "theorem aristotle_goal_equicorrelation_eigenvalue\n    {L : \u2115} (rho : \u211d) (hL : L \u2265 2) :\n    let J : Matrix (Fin L) (Fin L) \u211d := fun _ _ => 1\n    let Theta := (1 - rho) \u2022 (1 : Matrix (Fin L) (Fin L) \u211d) + rho \u2022 J\n    let ones : Fin L \u2192 \u211d := fun _ => 1\n    mulVec Theta ones = (1 + ((L : \u211d) - 1) * rho) \u2022 ones := by\n  sorry"
-    },
-    {
-      "goal_index": 8,
-      "title": "Regularized Operator Unit Diagonal Preservation (Theorem 2)",
-      "target_id": "THM_2_REPAIR_UNIT_DIAGONAL",
-      "theorem_name": "aristotle_goal_gershgorin_shift_dominance",
+      "goal_index": 15,
+      "title": "Regularized Operator Unit Diagonal Preservation (Theorem 9)",
+      "target_id": "THM_9_REPAIR_UNIT_DIAGONAL",
+      "theorem_name": "aristotle_goal_repair_unit_diagonal",
       "difficulty": "Level 1",
-      "paper_ref": "Section 4.2, Theorem 2",
+      "paper_ref": "Section 4.3, Theorem 9 (th:reg_spd)",
+      "status": "PROVEN",
+      "is_proven": true,
+      "lean4_code": "theorem aristotle_goal_repair_unit_diagonal\n    {L : \u2115} (Theta : Matrix (Fin L) (Fin L) \u211d)\n    (h_diag : \u2200 i, Theta i i = 1)\n    (eta : \u211d) (h_eta : 1 + eta \u2260 0) :\n    \u2200 i : Fin L, repair_operator L Theta eta i i = 1 := by\n  intro i\n  dsimp [repair_operator]\n  rw [h_diag i, Matrix.one_apply_eq, mul_one]\n  exact one_div_mul_cancel h_eta"
+    },
+    {
+      "goal_index": 16,
+      "title": "Gershgorin Shift Strict Dominance Guarantee (Theorem 9)",
+      "target_id": "THM_9_GERSHGORIN_DOMINANCE",
+      "theorem_name": "aristotle_goal_gershgorin_shift_dominance",
+      "difficulty": "Level 2",
+      "paper_ref": "Section 4.3, Theorem 9 & Remark 4 (th:reg_spd)",
       "status": "PROVEN",
       "is_proven": true,
       "lean4_code": "theorem aristotle_goal_gershgorin_shift_dominance\n    (row_sum_offdiag eta eps : \u211d)\n    (heps : eps > 0)\n    (heta : eta \u2265 row_sum_offdiag - 1 + eps) :\n    row_sum_offdiag < 1 + eta := by\n  linarith"
     },
     {
-      "goal_index": 10,
-      "title": "Hilbertian Squared Distance Euclidean Expansion (Theorem 4)",
-      "target_id": "THM_4_HILBERTIAN_DISTANCE_IDENTITY",
-      "theorem_name": "aristotle_goal_hilbertian_distance_identity",
-      "difficulty": "Level 1",
-      "paper_ref": "Section 5.2.2, Theorem 4",
-      "status": "PROVEN",
-      "is_proven": true,
-      "lean4_code": "theorem aristotle_goal_hilbertian_distance_identity\n    (norm_vi_sq norm_vj_sq inner_prod : \u211d)\n    (hvi : norm_vi_sq = 1)\n    (hvj : norm_vj_sq = 1) :\n    norm_vi_sq + norm_vj_sq - 2 * inner_prod = 2 * (1 - inner_prod) := by\n  rw [hvi, hvj]\n  ring"
-    },
-    {
-      "goal_index": 11,
-      "title": "Schoenberg Distance Kernel Envelope Bounds (Theorem 4)",
-      "target_id": "THM_4_SCHOENBERG_KERNEL_BOUNDS",
-      "theorem_name": "aristotle_goal_schoenberg_kernel_envelope",
-      "difficulty": "Level 2",
-      "paper_ref": "Section 5.2.2, Theorem 4",
-      "status": "PROVEN",
-      "is_proven": true,
-      "lean4_code": "theorem aristotle_goal_schoenberg_kernel_envelope\n    (theta_qual rho : \u211d)\n    (htheta : theta_qual > 0)\n    (hrho_lower : -1 \u2264 rho)\n    (hrho_upper : rho \u2264 1) :\n    let k := Real.exp (-theta_qual * (1 - rho))\n    0 < k \u2227 k \u2264 1 \u2227 (rho = 1 \u2192 k = 1) := by\n  dsimp\n  refine \u27e8Real.exp_pos _, ?_, ?_\u27e9\n  \u00b7 rw [Real.exp_le_one_iff]\n    have h1 : 0 \u2264 1 - rho := by linarith\n    have h2 : 0 \u2264 theta_qual * (1 - rho) := mul_nonneg (le_of_lt htheta) h1\n    linarith\n  \u00b7 intro hrho1\n    have hzero : -theta_qual * (1 - rho) = 0 := by\n      calc -theta_qual * (1 - rho) = -theta_qual * (1 - 1) := by rw [hrho1]\n      _ = 0 := by ring\n    rw [hzero, Real.exp_zero]"
-    },
-    {
-      "goal_index": 12,
-      "title": "Ledoit-Wolf Linear Shrinkage Equivalence (Theorem 2 & Remark 3)",
-      "target_id": "THM_2_LEDOIT_WOLF_SHRINKAGE_EQUIVALENCE",
+      "goal_index": 17,
+      "title": "Ledoit-Wolf Linear Shrinkage Equivalence (Theorem 9)",
+      "target_id": "THM_9_LEDOIT_WOLF_SHRINKAGE_EQUIVALENCE",
       "theorem_name": "aristotle_goal_ledoit_wolf_shrinkage_equivalence",
       "difficulty": "Level 1",
-      "paper_ref": "Section 4.2, Theorem 2 and Remark 3",
+      "paper_ref": "Section 4.3, Theorem 9 & Remark 4 (th:reg_spd)",
       "status": "PROVEN",
       "is_proven": true,
       "lean4_code": "theorem aristotle_goal_ledoit_wolf_shrinkage_equivalence\n    (eta : \u211d) (heta : eta \u2265 0) :\n    let alpha := eta / (1 + eta)\n    (0 \u2264 alpha \u2227 alpha < 1) \u2227\n    (1 - alpha = 1 / (1 + eta)) \u2227\n    (alpha = (1 / (1 + eta)) * eta) := by\n  dsimp\n  have h_denom_pos : 0 < 1 + eta := by linarith\n  have h_alpha_nonneg : 0 \u2264 eta / (1 + eta) := div_nonneg heta (le_of_lt h_denom_pos)\n  have h_alpha_lt_one : eta / (1 + eta) < 1 := by\n    rw [div_lt_one h_denom_pos]\n    linarith\n  have h_one_sub_alpha : 1 - eta / (1 + eta) = 1 / (1 + eta) := by\n    have h_div_self : (1 + eta) / (1 + eta) = 1 := div_self (ne_of_gt h_denom_pos)\n    calc 1 - eta / (1 + eta)\n      _ = (1 + eta) / (1 + eta) - eta / (1 + eta) := by rw [h_div_self]\n      _ = (1 + eta - eta) / (1 + eta) := by rw [\u2190 sub_div]\n      _ = 1 / (1 + eta) := by ring\n  have h_alpha_factor : eta / (1 + eta) = (1 / (1 + eta)) * eta := by\n    ring\n  exact \u27e8\u27e8h_alpha_nonneg, h_alpha_lt_one\u27e9, h_one_sub_alpha, h_alpha_factor\u27e9"
     },
     {
-      "goal_index": 13,
-      "title": "Canonical PLS Coordinate Recovery (Lemma 4)",
-      "target_id": "LEMMA_4_CANONICAL_COORDINATE_RECOVERY",
+      "goal_index": 18,
+      "title": "Repair Commutation with Unrepaired Matrix (Theorem 9)",
+      "target_id": "THM_9_REPAIR_COMMUTES_WITH_THETA",
+      "theorem_name": "aristotle_goal_repair_commutes_with_theta",
+      "difficulty": "Level 1",
+      "paper_ref": "Section 4.3, Theorem 9 (th:reg_spd)",
+      "status": "PROOF_STRUCTURE_FORMALIZED",
+      "is_proven": false,
+      "lean4_code": "theorem aristotle_goal_repair_commutes_with_theta\n    {n : \u2115} (Theta : Matrix (Fin n) (Fin n) \u211d) (eta : \u211d) :\n    let Theta_SPD := (1 / (1 + eta)) \u2022 Theta + (eta / (1 + eta)) \u2022 (1 : Matrix (Fin n) (Fin n) \u211d)\n    Theta_SPD * Theta = Theta * Theta_SPD := by\n  sorry"
+    },
+    {
+      "goal_index": 19,
+      "title": "Repair Eigenvector Preservation (Theorem 9)",
+      "target_id": "THM_9_REPAIR_PRESERVES_EIGENVECTORS",
+      "theorem_name": "aristotle_goal_repair_preserves_eigenvectors",
+      "difficulty": "Level 1",
+      "paper_ref": "Section 4.3, Theorem 9 (th:reg_spd)",
+      "status": "PROOF_STRUCTURE_FORMALIZED",
+      "is_proven": false,
+      "lean4_code": "theorem aristotle_goal_repair_preserves_eigenvectors\n    {n : \u2115} (Theta : Matrix (Fin n) (Fin n) \u211d) (eta lambda : \u211d)\n    (v : Fin n \u2192 \u211d)\n    (h_eig : mulVec Theta v = lambda \u2022 v) :\n    let Theta_SPD := (1 / (1 + eta)) \u2022 Theta + (eta / (1 + eta)) \u2022 (1 : Matrix (Fin n) (Fin n) \u211d)\n    mulVec Theta_SPD v = ((lambda + eta) / (1 + eta)) \u2022 v := by\n  sorry"
+    },
+    {
+      "goal_index": 20,
+      "title": "Repair Off-Diagonal Ratio Preservation (Theorem 9)",
+      "target_id": "THM_9_REPAIR_PRESERVES_OFFDIAGONAL_RATIOS",
+      "theorem_name": "aristotle_goal_repair_preserves_offdiagonal_ratios",
+      "difficulty": "Level 1",
+      "paper_ref": "Section 4.3, Theorem 9 (th:reg_spd)",
+      "status": "PROVEN",
+      "is_proven": true,
+      "lean4_code": "theorem aristotle_goal_repair_preserves_offdiagonal_ratios\n    (theta_1 theta_2 eta : \u211d)\n    (h2_ne : theta_2 \u2260 0)\n    (heta_pos : 1 + eta > 0) :\n    let rep_1 := (1 / (1 + eta)) * theta_1\n    let rep_2 := (1 / (1 + eta)) * theta_2\n    rep_1 / rep_2 = theta_1 / theta_2 := by\n  dsimp\n  have hc : 1 / (1 + eta) \u2260 0 := one_div_ne_zero (ne_of_gt heta_pos)\n  rw [mul_div_mul_left theta_1 theta_2 hc]"
+    },
+    {
+      "goal_index": 21,
+      "title": "Heteroscedastic Covariance Marginal Variance Preservation (Corollary)",
+      "target_id": "COR_9_HETEROSCEDASTIC_REPAIR_DIAGONAL",
+      "theorem_name": "aristotle_goal_heteroscedastic_repair_diagonal",
+      "difficulty": "Level 1",
+      "paper_ref": "Section 4.3, Corollary (cor:heteroscedastic_repair)",
+      "status": "PROVEN",
+      "is_proven": true,
+      "lean4_code": "theorem aristotle_goal_heteroscedastic_repair_diagonal\n    (sigma_sq eta : \u211d)\n    (heta_ne : 1 + eta \u2260 0) :\n    (sigma_sq + eta * sigma_sq) / (1 + eta) = sigma_sq := by\n  calc (sigma_sq + eta * sigma_sq) / (1 + eta)\n    _ = (sigma_sq * (1 + eta)) / (1 + eta) := by ring_nf\n    _ = sigma_sq * ((1 + eta) / (1 + eta)) := by rw [mul_div_assoc]\n    _ = sigma_sq * 1 := by rw [div_self heta_ne]\n    _ = sigma_sq := by rw [mul_one]"
+    },
+    {
+      "goal_index": 22,
+      "title": "Gershgorin Spectral Repair Analytical Directional Gradient (Theorem 10)",
+      "target_id": "THM_10_GERSHGORIN_REPAIR_ANALYTICAL_JACOBIAN",
+      "theorem_name": "aristotle_goal_gershgorin_repair_analytical_jacobian",
+      "difficulty": "Level 1",
+      "paper_ref": "Section 4.5, Theorem 10 (th:gershgorin_gradient)",
+      "status": "PROVEN",
+      "is_proven": true,
+      "lean4_code": "theorem aristotle_goal_gershgorin_repair_analytical_jacobian\n    (u u_prime eta eta_prime : \u211d)\n    (heta_pos : 1 + eta > 0) :\n    let f := u / (1 + eta)\n    let f_prime := (u_prime * (1 + eta) - u * eta_prime) / (1 + eta)^2\n    f_prime = (1 / (1 + eta)) * (u_prime - f * eta_prime) := by\n  dsimp\n  have heta_ne : 1 + eta \u2260 0 := ne_of_gt heta_pos\n  have hsq : (1 + eta)^2 = (1 + eta) * (1 + eta) := sq (1 + eta)\n  rw [hsq]\n  field_simp [heta_ne]"
+    },
+    {
+      "goal_index": 23,
+      "title": "Equicorrelation Spectrum & Determinant Scaling (Proposition 11)",
+      "target_id": "PROP_11_EQUICORRELATION_SPECTRUM",
+      "theorem_name": "aristotle_goal_equicorrelation_eigenvalue",
+      "difficulty": "Level 3",
+      "paper_ref": "Section 4.4, Proposition 11 (prop:equicorr_spectrum)",
+      "status": "PROOF_STRUCTURE_FORMALIZED",
+      "is_proven": false,
+      "lean4_code": "theorem aristotle_goal_equicorrelation_eigenvalue\n    {L : \u2115} (rho : \u211d) (hL : L \u2265 2) :\n    let J : Matrix (Fin L) (Fin L) \u211d := fun _ _ => 1\n    let Theta := (1 - rho) \u2022 (1 : Matrix (Fin L) (Fin L) \u211d) + rho \u2022 J\n    let ones : Fin L \u2192 \u211d := fun _ => 1\n    mulVec Theta ones = (1 + ((L : \u211d) - 1) * rho) \u2022 ones := by\n  sorry"
+    },
+    {
+      "goal_index": 24,
+      "title": "Sample Gram Matrix Positive Semidefiniteness (Proposition 12)",
+      "target_id": "PROP_12_SAMPLE_GRAM_PSD",
+      "theorem_name": "aristotle_goal_gram_psd",
+      "difficulty": "Level 3",
+      "paper_ref": "Section 5.1, Proposition 12 (prop:gram_psd)",
+      "status": "PROOF_STRUCTURE_FORMALIZED",
+      "is_proven": false,
+      "lean4_code": "theorem aristotle_goal_gram_psd\n    {L nt : \u2115} (Theta : Matrix (Fin L) (Fin L) \u211d)\n    (h_posdef : Theta.PosDef)\n    (M : Matrix (Fin nt) (Fin L) \u211d) :\n    let K := M * Theta * M.transpose\n    K.PosSemidef := by\n  sorry"
+    },
+    {
+      "goal_index": 25,
+      "title": "Canonical PLS Coordinate Recovery (Lemma 14)",
+      "target_id": "LEMMA_14_CANONICAL_COORDINATE_RECOVERY",
       "theorem_name": "aristotle_goal_canonical_recovery",
-      "difficulty": "Level 2",
-      "paper_ref": "Section 5.1, Lemma 4",
+      "difficulty": "Level 1",
+      "paper_ref": "Section 5.1, Lemma 14 (lem:canonical_pls_recov)",
       "status": "PROOF_STRUCTURE_FORMALIZED",
       "is_proven": false,
       "lean4_code": "theorem aristotle_goal_canonical_recovery\n    {D : \u2115} (theta_vec : Fin D \u2192 \u211d) (m_target : Fin D) :\n    \u2211 m : Fin D, (delta_operator m_target m) * (theta_vec m) = theta_vec m_target := by\n  sorry"
     },
     {
-      "goal_index": 14,
-      "title": "Round-Trip Adjoint Contraction (Theorem th:roundtrip_contraction)",
-      "target_id": "THM_ROUNDTRIP_ADJOINT_CONTRACTION",
-      "theorem_name": "aristotle_goal_roundtrip_stochastic",
-      "difficulty": "Level 2",
-      "paper_ref": "Section 3.3, Theorem th:roundtrip_contraction",
+      "goal_index": 26,
+      "title": "Hilbertian Squared Distance Euclidean Expansion (Theorem 16)",
+      "target_id": "THM_16_HILBERTIAN_DISTANCE_IDENTITY",
+      "theorem_name": "aristotle_goal_hilbertian_distance_identity",
+      "difficulty": "Level 1",
+      "paper_ref": "Section 5.3, Theorem 16 (th:hilbert_kernel_psd)",
       "status": "PROVEN",
       "is_proven": true,
-      "lean4_code": "theorem aristotle_goal_roundtrip_stochastic\n    {Din Dout : \u2115}\n    (G : Matrix (Fin Din) (Fin Dout) \u211d)\n    (h_norm : UnitRowNorm G)\n    (W : Matrix (Fin Dout) (Fin Din) \u211d)\n    (h_W_stoch : \u2200 p, (\u2200 r, 0 \u2264 W p r) \u2227 (\u2211 r, W p r = 1)) :\n    let M : Matrix (Fin Dout) (Fin Dout) \u211d := fun p q => \u2211 r : Fin Din, W p r * (G r q)^2\n    (\u2200 p q, 0 \u2264 M p q) \u2227 (\u2200 p, \u2211 q, M p q = 1) := by\n  dsimp\n  constructor\n  \u00b7 intro p q\n    exact Finset.sum_nonneg (fun r _ => mul_nonneg (h_W_stoch p).1 r (sq_nonneg (G r q)))\n  \u00b7 intro p\n    have h_swap : \u2211 q, (\u2211 r, W p r * (G r q)^2) = \u2211 r, (\u2211 q, W p r * (G r q)^2) := Finset.sum_comm\n    rw [h_swap]\n    have h_inner : \u2200 r, (\u2211 q, W p r * (G r q)^2) = W p r := by\n      intro r\n      rw [\u2190 mul_sum, h_norm r, mul_one]\n    have h_sum_inner : (\u2211 r, \u2211 q, W p r * (G r q)^2) = \u2211 r, W p r := by\n      exact Finset.sum_congr rfl (fun r _ => h_inner r)\n    rw [h_sum_inner]\n    exact (h_W_stoch p).2"
+      "lean4_code": "theorem aristotle_goal_hilbertian_distance_identity\n    (norm_vi_sq norm_vj_sq inner_prod : \u211d)\n    (hvi : norm_vi_sq = 1)\n    (hvj : norm_vj_sq = 1) :\n    norm_vi_sq + norm_vj_sq - 2 * inner_prod = 2 * (1 - inner_prod) := by\n  rw [hvi, hvj]\n  ring"
     },
     {
-      "goal_index": 15,
-      "title": "Admissible Latent Domain Convexity (Theorem th:admissible_convexity)",
-      "target_id": "THM_ADMISSIBLE_DOMAIN_CONVEXITY",
-      "theorem_name": "aristotle_goal_admissible_domain_convex",
+      "goal_index": 27,
+      "title": "Schoenberg Distance Kernel Envelope Bounds (Theorem 16)",
+      "target_id": "THM_16_SCHOENBERG_KERNEL_BOUNDS",
+      "theorem_name": "aristotle_goal_schoenberg_kernel_envelope",
       "difficulty": "Level 2",
-      "paper_ref": "Section 4.1, Theorem th:admissible_convexity",
+      "paper_ref": "Section 5.3, Theorem 16 (th:hilbert_kernel_psd)",
       "status": "PROVEN",
       "is_proven": true,
-      "lean4_code": "theorem aristotle_goal_admissible_domain_convex\n    {n : \u2115} (M1 M2 : Matrix (Fin n) (Fin n) \u211d)\n    (h_sym1 : M1.IsSymm) (h_sym2 : M2.IsSymm)\n    (h_diag1 : \u2200 i, M1 i i = 1) (h_diag2 : \u2200 i, M2 i i = 1)\n    (lambda : \u211d) (h_lam : 0 < lambda \u2227 lambda < 1) :\n    let M := lambda \u2022 M1 + (1 - lambda) \u2022 M2\n    M.IsSymm \u2227 (\u2200 i, M i i = 1) := by\n  dsimp\n  constructor\n  \u00b7 rw [Matrix.isSymm_add]\n    \u00b7 exact \u27e8IsSymm.smul lambda h_sym1, IsSymm.smul (1 - lambda) h_sym2\u27e9\n  \u00b7 intro i\n    rw [Matrix.add_apply, Matrix.smul_apply, Matrix.smul_apply, h_diag1 i, h_diag2 i]\n    ring"
+      "lean4_code": "theorem aristotle_goal_schoenberg_kernel_envelope\n    (theta_qual rho : \u211d)\n    (htheta : theta_qual > 0)\n    (hrho_lower : -1 \u2264 rho)\n    (hrho_upper : rho \u2264 1) :\n    let k := Real.exp (-theta_qual * (1 - rho))\n    0 < k \u2227 k \u2264 1 \u2227 (rho = 1 \u2192 k = 1) := by\n  dsimp\n  refine \u27e8Real.exp_pos _, ?_, ?_\u27e9\n  \u00b7 rw [Real.exp_le_one_iff]\n    have h1 : 0 \u2264 1 - rho := by linarith\n    have h2 : 0 \u2264 theta_qual * (1 - rho) := mul_nonneg (le_of_lt htheta) h1\n    linarith\n  \u00b7 intro hrho1\n    have hzero : -theta_qual * (1 - rho) = 0 := by\n      calc -theta_qual * (1 - rho) = -theta_qual * (1 - 1) := by rw [hrho1]\n      _ = 0 := by ring\n    rw [hzero, Real.exp_zero]"
     },
     {
-      "goal_index": 16,
-      "title": "Analytical Gradient of Gershgorin Repair (Theorem th:gershgorin_gradient)",
-      "target_id": "THM_GERSHGORIN_REPAIR_GRADIENT",
-      "theorem_name": "aristotle_goal_gershgorin_repair_gradient",
-      "difficulty": "Level 2",
-      "paper_ref": "Section 4.2, Theorem th:gershgorin_gradient",
+      "goal_index": 28,
+      "title": "Completely Monotonic Rational Quadratic Kernel Bounds (Theorem 16)",
+      "target_id": "THM_16_RATIONAL_QUADRATIC_BOUNDS",
+      "theorem_name": "aristotle_goal_rational_quadratic_bounds",
+      "difficulty": "Level 1",
+      "paper_ref": "Section 5.3, Theorem 16 (th:hilbert_kernel_psd)",
       "status": "PROVEN",
       "is_proven": true,
-      "lean4_code": "theorem aristotle_goal_gershgorin_repair_gradient\n    (theta_entry eta dtheta_entry deta : \u211d)\n    (h_eta : eta > 0) :\n    let repaired_entry := theta_entry / (1 + eta)\n    (1 / (1 + eta)) * (dtheta_entry - repaired_entry * deta) =\n    (dtheta_entry * (1 + eta) - theta_entry * deta) / (1 + eta)^2 := by\n  dsimp\n  have h_denom : 1 + eta \u2260 0 := by linarith\n  have h_sq : (1 + eta)^2 = (1 + eta) * (1 + eta) := sq (1 + eta)\n  rw [h_sq]\n  field_simp\n  ring"
+      "lean4_code": "theorem aristotle_goal_rational_quadratic_bounds\n    (d_sq alpha lq_sq : \u211d)\n    (halpha : alpha > 0)\n    (hlq : lq_sq > 0)\n    (hd : d_sq \u2265 0) :\n    let r := d_sq / (2 * alpha * lq_sq)\n    0 < 1 + r \u2227 (d_sq = 0 \u2192 1 + r = 1) := by\n  dsimp\n  have hr_nonneg : 0 \u2264 d_sq / (2 * alpha * lq_sq) := by\n    apply div_nonneg hd\n    have : 0 < 2 * alpha * lq_sq := by positivity\n    exact le_of_lt this\n  refine \u27e8by linarith, ?_\u27e9\n  intro hd0\n  rw [hd0]\n  have : (0 : \u211d) / (2 * alpha * lq_sq) = 0 := zero_div (2 * alpha * lq_sq)\n  rw [this, add_zero]"
+    },
+    {
+      "goal_index": 29,
+      "title": "Clarke Subdifferential Global Lipschitz Bound (Proposition 17)",
+      "target_id": "PROP_17_CLARKE_SUBDIFFERENTIAL_LIPSCHITZ",
+      "theorem_name": "aristotle_goal_clarke_subdifferential_lipschitz",
+      "difficulty": "Level 1",
+      "paper_ref": "Appendix B.1, Proposition 17 (prop:clarke_subdiff)",
+      "status": "PROVEN",
+      "is_proven": true,
+      "lean4_code": "theorem aristotle_goal_clarke_subdifferential_lipschitz\n    (L : \u2115) (hL : L \u2265 2) :\n    (L : \u211d) - 1 \u2265 1 := by\n  have h : (L : \u211d) \u2265 2 := by exact_mod_cast hL\n  linarith"
     }
   ],
   "declarations_inventory": [
@@ -199,10 +353,6 @@
     },
     {
       "kind": "axiom",
-      "name": "for"
-    },
-    {
-      "kind": "axiom",
       "name": "psi_bijective"
     },
     {
@@ -211,7 +361,15 @@
     },
     {
       "kind": "theorem",
-      "name": "hadamard_selection"
+      "name": "lem_1_hadamard_selection"
+    },
+    {
+      "kind": "theorem",
+      "name": "prop_2_incidence_homothety_on_orthogonal"
+    },
+    {
+      "kind": "theorem",
+      "name": "prop_2_incidence_all_ones_eigenvalue"
     },
     {
       "kind": "def",
@@ -219,7 +377,15 @@
     },
     {
       "kind": "theorem",
-      "name": "convex_combination_weights"
+      "name": "lem_3_convex_combination_weights"
+    },
+    {
+      "kind": "theorem",
+      "name": "prop_4_l2_trivial_weight"
+    },
+    {
+      "kind": "theorem",
+      "name": "prop_4_l2_equicorrelation_collapse"
     },
     {
       "kind": "lemma",
@@ -250,32 +416,28 @@
       "name": "R_operator"
     },
     {
-      "kind": "noncomputable def",
-      "name": "P_composite_operator"
-    },
-    {
-      "kind": "noncomputable def",
-      "name": "RoundTripMatrix"
+      "kind": "theorem",
+      "name": "lem_3_entry_bound_preservation"
     },
     {
       "kind": "theorem",
-      "name": "roundtrip_matrix_stochastic"
+      "name": "th_5_markov_detailed_balance"
     },
     {
       "kind": "theorem",
-      "name": "roundtrip_equicorrelation_fixed_point"
+      "name": "th_5_markov_stationary_distribution"
     },
     {
       "kind": "theorem",
-      "name": "entry_bound_preservation"
+      "name": "th_5_markov_invariant_mean_correlation"
+    },
+    {
+      "kind": "theorem",
+      "name": "th_5_roundtrip_adjoint_markov_contraction"
     },
     {
       "kind": "def",
       "name": "StrictlyDiagonallyDominant"
-    },
-    {
-      "kind": "theorem",
-      "name": "consequence"
     },
     {
       "kind": "axiom",
@@ -283,23 +445,15 @@
     },
     {
       "kind": "theorem",
-      "name": "spd_sufficient_condition_reconstruction"
+      "name": "th_7_spd_sufficient_condition_reconstruction"
     },
     {
       "kind": "theorem",
-      "name": "spd_sufficient_condition_reduction"
-    },
-    {
-      "kind": "def",
-      "name": "AdmissibleLatentDomain"
+      "name": "th_7_spd_sufficient_condition_reduction"
     },
     {
       "kind": "theorem",
-      "name": "convex_comb_affine_unit_diag"
-    },
-    {
-      "kind": "theorem",
-      "name": "convex_comb_pos_quadratic"
+      "name": "th_8_admissible_domain_convex_spectrahedron"
     },
     {
       "kind": "noncomputable def",
@@ -307,23 +461,35 @@
     },
     {
       "kind": "theorem",
-      "name": "repair_operator_unit_diagonal"
+      "name": "th_9_repair_unit_diagonal"
     },
     {
       "kind": "theorem",
-      "name": "ledoit_wolf_shrinkage_equivalence"
+      "name": "th_9_ledoit_wolf_shrinkage_equivalence"
     },
     {
       "kind": "theorem",
-      "name": "repair_operator_restores_spd"
+      "name": "th_9_repair_commutes_with_theta"
     },
     {
       "kind": "theorem",
-      "name": "gershgorin_repair_gradient_formula"
+      "name": "th_9_repair_preserves_eigenvectors"
     },
     {
       "kind": "theorem",
-      "name": "equicorrelation_preservation"
+      "name": "th_9_repair_preserves_offdiagonal_ratios"
+    },
+    {
+      "kind": "theorem",
+      "name": "th_9_repair_restores_spd"
+    },
+    {
+      "kind": "theorem",
+      "name": "cor_9_heteroscedastic_repair_diagonal"
+    },
+    {
+      "kind": "theorem",
+      "name": "th_10_gershgorin_repair_analytical_jacobian"
     },
     {
       "kind": "def",
@@ -331,23 +497,27 @@
     },
     {
       "kind": "theorem",
-      "name": "spectral_bounds"
+      "name": "prop_11_equicorrelation_spectrum"
     },
     {
       "kind": "theorem",
-      "name": "determinant_bounds"
+      "name": "prop_11_spectral_bounds"
     },
     {
       "kind": "theorem",
-      "name": "sample_gram_psd"
+      "name": "prop_11_determinant_bounds"
     },
     {
       "kind": "theorem",
-      "name": "sample_gram_exact_nullspace"
+      "name": "prop_12_sample_gram_psd"
     },
     {
       "kind": "theorem",
-      "name": "gram_matrix_spectral_scaling"
+      "name": "prop_12_sample_gram_exact_nullspace"
+    },
+    {
+      "kind": "theorem",
+      "name": "prop_12_gram_matrix_spectral_scaling"
     },
     {
       "kind": "def",
@@ -355,7 +525,7 @@
     },
     {
       "kind": "theorem",
-      "name": "canonical_pls_coordinate_recovery"
+      "name": "lem_14_canonical_pls_coordinate_recovery"
     },
     {
       "kind": "noncomputable def",
@@ -363,7 +533,19 @@
     },
     {
       "kind": "theorem",
-      "name": "schoenberg_categorical_kernel"
+      "name": "th_16_hilbertian_distance_identity"
+    },
+    {
+      "kind": "theorem",
+      "name": "th_16_schoenberg_categorical_kernel"
+    },
+    {
+      "kind": "theorem",
+      "name": "th_16_rational_quadratic_kernel_bounds"
+    },
+    {
+      "kind": "theorem",
+      "name": "prop_17_clarke_subdifferential_lipschitz"
     }
   ]
 }

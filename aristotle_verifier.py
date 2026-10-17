@@ -3,8 +3,7 @@ aristotle_verifier.py
 =====================
 Formal Verification Orchestrator and Aristotle ATP Bundle Generator
 Companion tool for:
-"Partial Least Squares for Qualitative Correlation Matrices:
- Geometry, Invariance, and Fast Spectral Repair"
+"Partial Least Squares for Qualitative Correlation Matrices: Geometry, Invariance, and Fast Spectral Repair"
 Author: Paul Saves
 
 This script:
@@ -25,7 +24,7 @@ def parse_aristotle_export(file_path):
         content = f.read()
 
     goals = []
-    blocks = re.findall(r"/-!\s*=+.*?ARISTOTLE GOAL (\d+):(.*?)=+\s*(.*?)-/\s*(theorem\s+([a-zA-Z0-9_]+)\s*[\s\S]*?:=\s*by([\s\S]*?)(?=(?:/-!|end AristotleExport)))", content, re.DOTALL)
+    blocks = re.findall(r"/-!\s*=+.*?ARISTOTLE GOAL (\d+):(.*?)=+\s*(.*?)-/\s*(?:/--[\s\S]*?-/\s*)?(theorem\s+([a-zA-Z0-9_]+)\s*[\s\S]*?:=\s*by([\s\S]*?)(?=(?:/-!|end AristotleExport)))", content, re.DOTALL)
 
     for b in blocks:
         goal_num = int(b[0])
@@ -68,7 +67,7 @@ def parse_formal_proofs(file_path):
         content = f.read()
 
     items = []
-    pattern = r"(theorem|lemma|def|axiom|noncomputable def)\s+([a-zA-Z0-9_]+)"
+    pattern = r"(?m)^\s*(theorem|lemma|def|axiom|noncomputable def)\s+([a-zA-Z0-9_]+)"
     for m in re.finditer(pattern, content):
         kind = m.group(1)
         name = m.group(2)
@@ -114,7 +113,7 @@ def generate_aristotle_bundle():
 
     # Save to JSON bundle for Aristotle engine
     bundle = {
-        "manuscript_title": "On the Positive Definiteness of Partial Least Squares Transformations for Categorical Correlation Matrices",
+        "manuscript_title": "Partial Least Squares for Qualitative Correlation Matrices: Geometry, Invariance, and Fast Spectral Repair",
         "author": "Paul Saves",
         "lean4_version": "v4.14.0",
         "mathlib_version": "v4.14.0",
@@ -127,8 +126,11 @@ def generate_aristotle_bundle():
     with open(out_json, "w", encoding="utf-8") as f:
         json.dump(bundle, f, indent=2)
 
+    with open("aristotle_bundle.json", "w", encoding="utf-8") as f:
+        json.dump(bundle, f, indent=2)
+
     print(f"\n3. Aristotle Proof Export Bundle generated:")
-    print(f"   -> Successfully written to {out_json}")
+    print(f"   -> Successfully written to {out_json} and aristotle_bundle.json")
     print("=" * 80)
 
 if __name__ == "__main__":

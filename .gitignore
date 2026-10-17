@@ -1,22 +1,32 @@
-# Lean 4 & Lake Build Artifacts
-.lake/
-build/
-*.olean
-*.ilean
-*.c
-
-# Python Artifacts
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
-.pytest_cache/
-*.egg-info/
-dist/
+*.so
+.env
+venv/
+env/
 
-# Editor & System Artifacts
-.vscode/
-.idea/
+# LaTeX
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.nav
+*.snm
+*.vrb
+
+# Lean 4 / Lake
+.lake/
+.cache/
+
+# OS / Editor
 .DS_Store
 Thumbs.db
-desktop.ini
-.cache/
+.vscode/
+.idea/
