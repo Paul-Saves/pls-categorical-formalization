@@ -319,7 +319,7 @@ theorem th_5_roundtrip_adjoint_markov_contraction
 
 
 /-!
-  # Section 7: Sufficient Conditions for Elliptope Preservation under Gershgorin Dominance (Theorem 7)
+  # Section 7: Sufficient Conditions for Elliptope Preservation under Gershgorin Dominance (Theorem 6)
 -/
 
 /-- Definition: Strictly Diagonally Dominant with positive diagonals. -/
@@ -360,7 +360,7 @@ theorem th_7_spd_sufficient_condition_reduction
 
 
 /-!
-  # Section 8: Admissible Latent Domain and Spectrahedral Convexity (Theorem 8)
+  # Section 8: Admissible Latent Domain and Spectrahedral Convexity (Theorem 7)
 -/
 
 /-- Theorem 8: Convexity and Spectrahedral Geometry of the Admissible Domain (Section 4.2, th:admissible_convexity).
@@ -375,7 +375,7 @@ theorem th_8_admissible_domain_convex_spectrahedron
 
 
 /-!
-  # Section 9: Fast O(L^2) Spectral Repair, Commutation, and Ratio Preservation (Theorem 9 & Corollary)
+  # Section 9: Fast O(L^2) Spectral Repair, Commutation, and Ratio Preservation (Theorem 8 & Corollary 9)
 -/
 
 /-- Definition of the Diagonal Shift-and-Scaling Repair Operator (Theorem 9, Section 4.3, th:reg_spd).
@@ -493,7 +493,7 @@ theorem th_10_gershgorin_repair_analytical_jacobian
 
 
 /-!
-  # Section 11: Equicorrelation Spectrum, Determinant, and Spectral Bounds (Proposition 11)
+  # Section 11: Equicorrelation Spectrum, Determinant, and Spectral Bounds (Proposition 12)
 -/
 
 /-- Predicate for an eigenvalue of a matrix: ∃ v ≠ 0, A *ᵥ v = lambda • v. -/
@@ -537,7 +537,7 @@ theorem prop_11_determinant_bounds
 
 
 /-!
-  # Section 12: Sample Gram Matrix Factorization, Spectral Scaling, and Coordinate Recovery (Proposition 12, Lemma 14)
+  # Section 12: Sample Gram Matrix Factorization, Spectral Scaling, and Coordinate Recovery (Proposition 13, Lemma 14)
 -/
 
 /-- Proposition 12(a): Positive Semidefiniteness and Factorization of Sample Gram Matrix K = M * Theta * Mᵀ (prop:gram_psd). -/
@@ -587,7 +587,7 @@ theorem lem_14_canonical_pls_coordinate_recovery
 
 
 /-!
-  # Section 13: Metric Geometry and Universal Schoenberg-Bernstein Categorical Kernels (Definition 5, Theorem 16)
+  # Section 13: Metric Geometry and Universal Schoenberg-Bernstein Categorical Kernels (Definition 5, Theorem 15)
 -/
 
 /-- Definition 5: Squared Hilbertian correlation distance d_Θ^2(i, j) = 2(1 - Θ_{ij}) (def:hilbertian_metric). -/
@@ -634,7 +634,7 @@ theorem th_16_rational_quadratic_kernel_bounds
 
 
 /-!
-  # Section 14: Non-Smooth Analysis and Clarke Subdifferentials (Proposition 17)
+  # Section 14: Non-Smooth Analysis and Clarke Subdifferentials (Proposition 16)
 -/
 
 /-- Proposition 17(a) (Clarke Subdifferential Global Lipschitz Bound, prop:clarke_subdiff):

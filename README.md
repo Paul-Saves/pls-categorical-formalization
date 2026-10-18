@@ -31,7 +31,7 @@ However, unconstrained PLS reconstruction frequently produces non-positive-defin
 ├── sample.bib                     # Curated BibTeX bibliography
 ├── requirements.txt               # Minimal Python dependencies
 │
-├── generate_all_tables.py         # Master reproduction script for Tables 3, 4, 5, 6
+├── generate_all_tables.py         # Master reproduction script for Tables 2, 3, 4, 5, C2
 ├── generate_all_figures.py        # Master reproduction script for Figures 1, 2, 3, 4
 ├── benchmark_gp_experiments.py    # Multi-start L-BFGS-B GP emulation benchmark
 ├── verify_theorems.py             # Numerical stress-testing and theorem verification
@@ -42,8 +42,8 @@ However, unconstrained PLS reconstruction frequently produces non-positive-defin
 ├── aristotle_goals.json           # Machine-readable Aristotle ATP goals
 │
 └── figures/                       # Publication-quality vector graphics (PDF & PNG)
-    ├── fig1_elliptope_geometry.pdf
-    ├── fig2_eigenvalue_spectra.pdf
+    ├── fig1_phase_diagram.pdf
+    ├── fig2_repair_tradeoff.pdf
     ├── fig3_benchmark_boxplots.pdf
     └── fig4_runtime_scaling.pdf
 ```
@@ -76,10 +76,10 @@ python generate_all_tables.py --full
 
 You can also run individual tables:
 ```bash
-python generate_all_tables.py --table 3    # Raw PLS row norms distribution
-python generate_all_tables.py --table 4    # Frequency and severity of non-SPD reconstructions
-python generate_all_tables.py --table 5    # Condition numbers across 200 non-SPD instances
-python generate_all_tables.py --table 6    # Multi-function GP emulation benchmark (f1, f2, f3)
+python generate_all_tables.py --table 4    # Frequency of non-SPD reconstructions (Table 2)
+python generate_all_tables.py --table 6    # Multi-function GP emulation benchmark (Table 4) (Table 3)
+python generate_all_tables.py --table 6    # Multi-function GP emulation benchmark (Table 4)
+python generate_all_tables.py --table 3    # Empirical distribution of raw PLS row norms (Table C2)
 ```
 
 ### 3. Reproduce All Vector Figures
@@ -123,23 +123,23 @@ python aristotle_verifier.py
 | **10** | `THM_5_MARKOV_DETAILED_BALANCE` | Section 3.2, Theorem 5 (`th:roundtrip_contraction`) | Detailed balance $D_{\mathrm{col}} M = M^\top D_{\mathrm{col}} = A^\top A$ and reversible symmetry | :microscope: *FORMALIZED SPEC* |
 | **11** | `THM_5_MARKOV_STATIONARY_DISTRIBUTION` | Section 3.2, Theorem 5 (`th:roundtrip_contraction`) | Column degrees vector $\bm{d}$ forms exact stationary distribution $\bm{d}^\top M = \bm{d}^\top$ | :microscope: *FORMALIZED SPEC* |
 | **12** | `THM_5_MARKOV_INVARIANT_MEAN_CORRELATION` | Section 3.2, Theorem 5 (`th:roundtrip_contraction`) | Reconstructed full-space mean correlation $\bar{\theta}_{\mathrm{full}} = \bm{\pi}^\top \hat{\bm{\theta}}$ is an exact invariant | :microscope: *FORMALIZED SPEC* |
-| **13** | `THM_7_SPD_SUFFICIENT_CONDITION` | Section 4.1, Theorem 7 (`th:spd_condition`) | Gershgorin dominant bound $\rho_{\max} < 1/(L-1)$ ensures positive definiteness | :microscope: *FORMALIZED SPEC* |
-| **14** | `THM_8_ADMISSIBLE_DOMAIN_CONVEX_SPECTRAHEDRON` | Section 4.2, Theorem 8 (`th:admissible_convexity`) | Convexity of the positive definite elliptope cone under linear combinations | :microscope: *FORMALIZED SPEC* |
-| **15** | `THM_9_REPAIR_UNIT_DIAGONAL` | Section 4.3, Theorem 9 (`th:reg_spd`) | Shift-and-scaling repair operator preserves exact unit diagonal $[\Theta_{\mathrm{SPD}}]_{jj} \equiv 1$ | :white_check_mark: **PROVEN** |
-| **16** | `THM_9_GERSHGORIN_DOMINANCE` | Section 4.3, Theorem 9 & Remark 4 (`th:reg_spd`) | Gershgorin shift $\eta_{\mathrm{Gersh}}$ guarantees strict diagonal dominance | :white_check_mark: **PROVEN** |
-| **17** | `THM_9_LEDOIT_WOLF_SHRINKAGE_EQUIVALENCE` | Section 4.3, Theorem 9 & Remark 4 (`th:reg_spd`) | Exact identity with Ledoit-Wolf shrinkage $\alpha = \eta / (1+\eta) \in [0, 1)$ | :white_check_mark: **PROVEN** |
-| **18** | `THM_9_REPAIR_COMMUTES_WITH_THETA` | Section 4.3, Theorem 9 (`th:reg_spd`) | Commutativity $[\Theta_{\mathrm{SPD}}, \Theta] = \mathbf{0}$ and simultaneous diagonalizability | :microscope: *FORMALIZED SPEC* |
-| **19** | `THM_9_REPAIR_PRESERVES_EIGENVECTORS` | Section 4.3, Theorem 9 (`th:reg_spd`) | Identical eigenvector preservation with shifted eigenvalues $(\lambda + \eta)/(1+\eta)$ | :microscope: *FORMALIZED SPEC* |
-| **20** | `THM_9_REPAIR_PRESERVES_OFFDIAGONAL_RATIOS` | Section 4.3, Theorem 9 (`th:reg_spd`) | Strict cancellation of shrinkage factors across all off-diagonal correlation ratios | :white_check_mark: **PROVEN** |
+| **13** | `THM_6_SPD_SUFFICIENT_CONDITION` | Section 4.1, Theorem 7 (`th:spd_condition`) | Gershgorin dominant bound $\rho_{\max} < 1/(L-1)$ ensures positive definiteness | :microscope: *FORMALIZED SPEC* |
+| **14** | `THM_7_ADMISSIBLE_DOMAIN_CONVEX_SPECTRAHEDRON` | Section 4.2, Theorem 8 (`th:admissible_convexity`) | Convexity of the positive definite elliptope cone under linear combinations | :microscope: *FORMALIZED SPEC* |
+| **15** | `THM_8_REPAIR_UNIT_DIAGONAL` | Section 4.3, Theorem 8 (`th:reg_spd`) | Shift-and-scaling repair operator preserves exact unit diagonal $[\Theta_{\mathrm{SPD}}]_{jj} \equiv 1$ | :white_check_mark: **PROVEN** |
+| **16** | `THM_8_GERSHGORIN_DOMINANCE` | Section 4.3, Theorem 8 & Remark 4 (`th:reg_spd`) | Gershgorin shift $\eta_{\mathrm{Gersh}}$ guarantees strict diagonal dominance | :white_check_mark: **PROVEN** |
+| **17** | `THM_8_LEDOIT_WOLF_SHRINKAGE_EQUIVALENCE` | Section 4.3, Theorem 8 & Remark 4 (`th:reg_spd`) | Exact identity with Ledoit-Wolf shrinkage $\alpha = \eta / (1+\eta) \in [0, 1)$ | :white_check_mark: **PROVEN** |
+| **18** | `THM_8_REPAIR_COMMUTES_WITH_THETA` | Section 4.3, Theorem 8 (`th:reg_spd`) | Commutativity $[\Theta_{\mathrm{SPD}}, \Theta] = \mathbf{0}$ and simultaneous diagonalizability | :microscope: *FORMALIZED SPEC* |
+| **19** | `THM_8_REPAIR_PRESERVES_EIGENVECTORS` | Section 4.3, Theorem 8 (`th:reg_spd`) | Identical eigenvector preservation with shifted eigenvalues $(\lambda + \eta)/(1+\eta)$ | :microscope: *FORMALIZED SPEC* |
+| **20** | `THM_8_REPAIR_PRESERVES_OFFDIAGONAL_RATIOS` | Section 4.3, Theorem 8 (`th:reg_spd`) | Strict cancellation of shrinkage factors across all off-diagonal correlation ratios | :white_check_mark: **PROVEN** |
 | **21** | `COR_9_HETEROSCEDASTIC_REPAIR_DIAGONAL` | Section 4.3, Corollary (`cor:heteroscedastic_repair`) | Exact marginal variance preservation $[\Sigma_{\mathrm{SPD}}]_{jj} = \sigma_j^2$ under heteroscedastic repair | :white_check_mark: **PROVEN** |
 | **22** | `THM_10_GERSHGORIN_REPAIR_ANALYTICAL_JACOBIAN` | Section 4.5, Theorem 10 (`th:gershgorin_gradient`) | Quotient rule directional derivative of the regularized repair operator | :white_check_mark: **PROVEN** |
-| **23** | `PROP_11_EQUICORRELATION_SPECTRUM` | Section 4.4, Proposition 11 (`prop:equicorr_spectrum`) | Equicorrelation all-ones eigenvector and eigenvalue $\lambda_1 = 1 + (L-1)\rho$ | :microscope: *FORMALIZED SPEC* |
-| **24** | `PROP_12_SAMPLE_GRAM_PSD` | Section 5.1, Proposition 12 (`prop:gram_psd`) | Sample Gram matrix $K = M \Theta M^\top$ is symmetric positive semidefinite | :microscope: *FORMALIZED SPEC* |
+| **23** | `PROP_12_EQUICORRELATION_SPECTRUM` | Section 4.4, Proposition 11 (`prop:equicorr_spectrum`) | Equicorrelation all-ones eigenvector and eigenvalue $\lambda_1 = 1 + (L-1)\rho$ | :microscope: *FORMALIZED SPEC* |
+| **24** | `PROP_13_SAMPLE_GRAM_PSD` | Section 5.1, Proposition 12 (`prop:gram_psd`) | Sample Gram matrix $K = M \Theta M^\top$ is symmetric positive semidefinite | :microscope: *FORMALIZED SPEC* |
 | **25** | `LEMMA_14_CANONICAL_COORDINATE_RECOVERY` | Section 5.1, Lemma 14 (`lem:canonical_pls_recov`) | Indicator bilinear pairing isolates exact categorical PLS coordinate | :microscope: *FORMALIZED SPEC* |
-| **26** | `THM_16_HILBERTIAN_DISTANCE_IDENTITY` | Section 5.3, Theorem 16 (`th:hilbert_kernel_psd`) | Chordal distance identity $\|v_i - v_j\|^2 = 2(1 - \langle v_i, v_j \rangle)$ | :white_check_mark: **PROVEN** |
-| **27** | `THM_16_SCHOENBERG_KERNEL_BOUNDS` | Section 5.3, Theorem 16 (`th:hilbert_kernel_psd`) | Distance kernel entries strictly bounded in $(0, 1]$ | :white_check_mark: **PROVEN** |
-| **28** | `THM_16_RATIONAL_QUADRATIC_BOUNDS` | Section 5.3, Theorem 16 (`th:hilbert_kernel_psd`) | Completely monotonic Rational Quadratic categorical kernel base bounds | :white_check_mark: **PROVEN** |
-| **29** | `PROP_17_CLARKE_SUBDIFFERENTIAL_LIPSCHITZ` | Appendix B.1, Proposition 17 (`prop:clarke_subdiff`) | Shift function Lipschitz constant bound $\mathrm{Lip}_2(\eta_{\mathrm{Gersh}}) \le L - 1$ | :white_check_mark: **PROVEN** |
+| **26** | `THM_15_HILBERTIAN_DISTANCE_IDENTITY` | Section 5.3, Theorem 16 (`th:hilbert_kernel_psd`) | Chordal distance identity $\|v_i - v_j\|^2 = 2(1 - \langle v_i, v_j \rangle)$ | :white_check_mark: **PROVEN** |
+| **27** | `THM_15_SCHOENBERG_KERNEL_BOUNDS` | Section 5.3, Theorem 16 (`th:hilbert_kernel_psd`) | Distance kernel entries strictly bounded in $(0, 1]$ | :white_check_mark: **PROVEN** |
+| **28** | `THM_15_RATIONAL_QUADRATIC_BOUNDS` | Section 5.3, Theorem 16 (`th:hilbert_kernel_psd`) | Completely monotonic Rational Quadratic categorical kernel base bounds | :white_check_mark: **PROVEN** |
+| **29** | `PROP_16_CLARKE_SUBDIFFERENTIAL_LIPSCHITZ` | Appendix B.1, Proposition 17 (`prop:clarke_subdiff`) | Shift function Lipschitz constant bound $\mathrm{Lip}_2(\eta_{\mathrm{Gersh}}) \le L - 1$ | :white_check_mark: **PROVEN** |
 
 ---
 

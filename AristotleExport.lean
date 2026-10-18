@@ -365,11 +365,11 @@ theorem aristotle_goal_markov_invariant_mean_correlation
 
 /-!
   =============================================================================
-  ARISTOTLE GOAL 13: Strict Diagonal Dominance => Positive Definiteness (Theorem 7)
+  ARISTOTLE GOAL 13: Strict Diagonal Dominance => Positive Definiteness (Theorem 6)
   =============================================================================
-  TARGET_ID: THM_7_SPD_SUFFICIENT_CONDITION
+  TARGET_ID: THM_6_SPD_SUFFICIENT_CONDITION
   DIFFICULTY: Level 3 (Gershgorin Circle Dominance Theorem)
-  PAPER_REF: Section 4.1, Theorem 7 (th:spd_condition)
+  PAPER_REF: Section 4.1, Theorem 6 (th:spd_condition)
   STATUS: PROOF_STRUCTURE_FORMALIZED
 -/
 
@@ -386,11 +386,11 @@ theorem aristotle_goal_spd_from_dominance
 
 /-!
   =============================================================================
-  ARISTOTLE GOAL 14: Convexity of the Admissible Latent Domain (Theorem 8)
+  ARISTOTLE GOAL 14: Convexity of the Admissible Latent Domain (Theorem 7)
   =============================================================================
-  TARGET_ID: THM_8_ADMISSIBLE_DOMAIN_CONVEX_SPECTRAHEDRON
+  TARGET_ID: THM_7_ADMISSIBLE_DOMAIN_CONVEX_SPECTRAHEDRON
   DIFFICULTY: Level 2 (Convex Intersection of Positive Definite Preimages)
-  PAPER_REF: Section 4.2, Theorem 8 (th:admissible_convexity)
+  PAPER_REF: Section 4.2, Theorem 7 (th:admissible_convexity)
   STATUS: PROOF_STRUCTURE_FORMALIZED
 -/
 
@@ -404,11 +404,11 @@ theorem aristotle_goal_admissible_convexity
 
 /-!
   =============================================================================
-  ARISTOTLE GOAL 15: Regularized Operator Unit Diagonal Preservation (Theorem 9)
+  ARISTOTLE GOAL 15: Regularized Operator Unit Diagonal Preservation (Theorem 8)
   =============================================================================
-  TARGET_ID: THM_9_REPAIR_UNIT_DIAGONAL
+  TARGET_ID: THM_8_REPAIR_UNIT_DIAGONAL
   DIFFICULTY: Level 1 (Diagonal Arithmetic)
-  PAPER_REF: Section 4.3, Theorem 9 (th:reg_spd)
+  PAPER_REF: Section 4.3, Theorem 8 (th:reg_spd)
   STATUS: PROVEN
 -/
 
@@ -425,11 +425,11 @@ theorem aristotle_goal_repair_unit_diagonal
 
 /-!
   =============================================================================
-  ARISTOTLE GOAL 16: Gershgorin Shift Strict Dominance Guarantee (Theorem 9)
+  ARISTOTLE GOAL 16: Gershgorin Shift Strict Dominance Guarantee (Theorem 8)
   =============================================================================
-  TARGET_ID: THM_9_GERSHGORIN_DOMINANCE
+  TARGET_ID: THM_8_GERSHGORIN_DOMINANCE
   DIFFICULTY: Level 2 (Diagonal Shift Strict Inequality)
-  PAPER_REF: Section 4.3, Theorem 9 & Remark 4 (th:reg_spd)
+  PAPER_REF: Section 4.3, Theorem 8 & Remark 4 (th:reg_spd)
   STATUS: PROVEN
 -/
 
@@ -443,11 +443,11 @@ theorem aristotle_goal_gershgorin_shift_dominance
 
 /-!
   =============================================================================
-  ARISTOTLE GOAL 17: Ledoit-Wolf Linear Shrinkage Equivalence (Theorem 9)
+  ARISTOTLE GOAL 17: Ledoit-Wolf Linear Shrinkage Equivalence (Theorem 8)
   =============================================================================
-  TARGET_ID: THM_9_LEDOIT_WOLF_SHRINKAGE_EQUIVALENCE
+  TARGET_ID: THM_8_LEDOIT_WOLF_SHRINKAGE_EQUIVALENCE
   DIFFICULTY: Level 1 (Affine Convex Shrinkage Parameter Identity)
-  PAPER_REF: Section 4.3, Theorem 9 & Remark 4 (th:reg_spd)
+  PAPER_REF: Section 4.3, Theorem 8 & Remark 4 (th:reg_spd)
   STATUS: PROVEN
 -/
 
@@ -476,11 +476,11 @@ theorem aristotle_goal_ledoit_wolf_shrinkage_equivalence
 
 /-!
   =============================================================================
-  ARISTOTLE GOAL 18: Repair Commutation with Unrepaired Matrix (Theorem 9)
+  ARISTOTLE GOAL 18: Repair Commutation with Unrepaired Matrix (Theorem 8)
   =============================================================================
-  TARGET_ID: THM_9_REPAIR_COMMUTES_WITH_THETA
+  TARGET_ID: THM_8_REPAIR_COMMUTES_WITH_THETA
   DIFFICULTY: Level 1 (Matrix Ring Commutativity with Scaled Identity)
-  PAPER_REF: Section 4.3, Theorem 9 (th:reg_spd)
+  PAPER_REF: Section 4.3, Theorem 8 (th:reg_spd)
   STATUS: PROOF_STRUCTURE_FORMALIZED
 -/
 
@@ -493,11 +493,11 @@ theorem aristotle_goal_repair_commutes_with_theta
 
 /-!
   =============================================================================
-  ARISTOTLE GOAL 19: Repair Eigenvector Preservation (Theorem 9)
+  ARISTOTLE GOAL 19: Repair Eigenvector Preservation (Theorem 8)
   =============================================================================
-  TARGET_ID: THM_9_REPAIR_PRESERVES_EIGENVECTORS
+  TARGET_ID: THM_8_REPAIR_PRESERVES_EIGENVECTORS
   DIFFICULTY: Level 1 (Linear Eigenvector Invariance under Affine Shift)
-  PAPER_REF: Section 4.3, Theorem 9 (th:reg_spd)
+  PAPER_REF: Section 4.3, Theorem 8 (th:reg_spd)
   STATUS: PROOF_STRUCTURE_FORMALIZED
 -/
 
@@ -512,11 +512,11 @@ theorem aristotle_goal_repair_preserves_eigenvectors
 
 /-!
   =============================================================================
-  ARISTOTLE GOAL 20: Repair Off-Diagonal Ratio Preservation (Theorem 9)
+  ARISTOTLE GOAL 20: Repair Off-Diagonal Ratio Preservation (Theorem 8)
   =============================================================================
-  TARGET_ID: THM_9_REPAIR_PRESERVES_OFFDIAGONAL_RATIOS
+  TARGET_ID: THM_8_REPAIR_PRESERVES_OFFDIAGONAL_RATIOS
   DIFFICULTY: Level 1 (Scalar Cancellation in Rational Fractions)
-  PAPER_REF: Section 4.3, Theorem 9 (th:reg_spd)
+  PAPER_REF: Section 4.3, Theorem 8 (th:reg_spd)
   STATUS: PROVEN
 -/
 
@@ -538,7 +538,7 @@ theorem aristotle_goal_repair_preserves_offdiagonal_ratios
   =============================================================================
   TARGET_ID: COR_9_HETEROSCEDASTIC_REPAIR_DIAGONAL
   DIFFICULTY: Level 1 (Marginal Variance Invariance under Scaling)
-  PAPER_REF: Section 4.3, Corollary (cor:heteroscedastic_repair)
+  PAPER_REF: Section 4.3, Corollary 9 (cor:heteroscedastic_repair)
   STATUS: PROVEN
 -/
 
@@ -578,11 +578,11 @@ theorem aristotle_goal_gershgorin_repair_analytical_jacobian
 
 /-!
   =============================================================================
-  ARISTOTLE GOAL 23: Equicorrelation Spectrum & Determinant Scaling (Proposition 11)
+  ARISTOTLE GOAL 23: Equicorrelation Spectrum & Determinant Scaling (Proposition 13)
   =============================================================================
-  TARGET_ID: PROP_11_EQUICORRELATION_SPECTRUM
+  TARGET_ID: PROP_12_EQUICORRELATION_SPECTRUM
   DIFFICULTY: Level 3 (Matrix Perturbation with All-Ones Vector)
-  PAPER_REF: Section 4.4, Proposition 11 (prop:equicorr_spectrum)
+  PAPER_REF: Section 4.4, Proposition 12 (prop:equicorr_spectrum)
   STATUS: PROOF_STRUCTURE_FORMALIZED
 -/
 
@@ -597,11 +597,11 @@ theorem aristotle_goal_equicorrelation_eigenvalue
 
 /-!
   =============================================================================
-  ARISTOTLE GOAL 24: Sample Gram Matrix Positive Semidefiniteness (Proposition 12)
+  ARISTOTLE GOAL 24: Sample Gram Matrix Positive Semidefiniteness (Proposition 13)
   =============================================================================
-  TARGET_ID: PROP_12_SAMPLE_GRAM_PSD
+  TARGET_ID: PROP_13_SAMPLE_GRAM_PSD
   DIFFICULTY: Level 3 (Quadratic Form Factoring vᵀ (M Θ Mᵀ) v = uᵀ Θ u ≥ 0)
-  PAPER_REF: Section 5.1, Proposition 12 (prop:gram_psd)
+  PAPER_REF: Section 5.1, Proposition 13 (prop:gram_psd)
   STATUS: PROOF_STRUCTURE_FORMALIZED
 -/
 
@@ -632,11 +632,11 @@ theorem aristotle_goal_canonical_recovery
 
 /-!
   =============================================================================
-  ARISTOTLE GOAL 26: Hilbertian Squared Distance Euclidean Expansion (Theorem 16)
+  ARISTOTLE GOAL 26: Hilbertian Squared Distance Euclidean Expansion (Theorem 15)
   =============================================================================
-  TARGET_ID: THM_16_HILBERTIAN_DISTANCE_IDENTITY
+  TARGET_ID: THM_15_HILBERTIAN_DISTANCE_IDENTITY
   DIFFICULTY: Level 1 (Euclidean Norm Squared Ring Expansion)
-  PAPER_REF: Section 5.3, Theorem 16 (th:hilbert_kernel_psd)
+  PAPER_REF: Section 5.3, Theorem 15 (th:hilbert_kernel_psd)
   STATUS: PROVEN
 -/
 
@@ -651,11 +651,11 @@ theorem aristotle_goal_hilbertian_distance_identity
 
 /-!
   =============================================================================
-  ARISTOTLE GOAL 27: Schoenberg Distance Kernel Envelope Bounds (Theorem 16)
+  ARISTOTLE GOAL 27: Schoenberg Distance Kernel Envelope Bounds (Theorem 15)
   =============================================================================
-  TARGET_ID: THM_16_SCHOENBERG_KERNEL_BOUNDS
+  TARGET_ID: THM_15_SCHOENBERG_KERNEL_BOUNDS
   DIFFICULTY: Level 2 (Exponential Monotonicity on Correlation Domain)
-  PAPER_REF: Section 5.3, Theorem 16 (th:hilbert_kernel_psd)
+  PAPER_REF: Section 5.3, Theorem 15 (th:hilbert_kernel_psd)
   STATUS: PROVEN
 -/
 
@@ -681,11 +681,11 @@ theorem aristotle_goal_schoenberg_kernel_envelope
 
 /-!
   =============================================================================
-  ARISTOTLE GOAL 28: Completely Monotonic Rational Quadratic Kernel Bounds (Theorem 16)
+  ARISTOTLE GOAL 28: Completely Monotonic Rational Quadratic Kernel Bounds (Theorem 15)
   =============================================================================
-  TARGET_ID: THM_16_RATIONAL_QUADRATIC_BOUNDS
+  TARGET_ID: THM_15_RATIONAL_QUADRATIC_BOUNDS
   DIFFICULTY: Level 1 (Rational Quadratic Base Positivity)
-  PAPER_REF: Section 5.3, Theorem 16 (th:hilbert_kernel_psd)
+  PAPER_REF: Section 5.3, Theorem 15 (th:hilbert_kernel_psd)
   STATUS: PROVEN
 -/
 
@@ -710,11 +710,11 @@ theorem aristotle_goal_rational_quadratic_bounds
 
 /-!
   =============================================================================
-  ARISTOTLE GOAL 29: Clarke Subdifferential Global Lipschitz Bound (Proposition 17)
+  ARISTOTLE GOAL 29: Clarke Subdifferential Global Lipschitz Bound (Proposition 16)
   =============================================================================
-  TARGET_ID: PROP_17_CLARKE_SUBDIFFERENTIAL_LIPSCHITZ
+  TARGET_ID: PROP_16_CLARKE_SUBDIFFERENTIAL_LIPSCHITZ
   DIFFICULTY: Level 1 (Elementary Dimension Constant Bound)
-  PAPER_REF: Appendix B.1, Proposition 17 (prop:clarke_subdiff)
+  PAPER_REF: Appendix B.1, Proposition 16 (prop:clarke_subdiff)
   STATUS: PROVEN
 -/
 
