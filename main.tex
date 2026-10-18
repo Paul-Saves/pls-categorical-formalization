@@ -37,7 +37,7 @@
 \newcommand{\outp}{\text{out}}
 \newcommand{\diag}{\operatorname{diag}}
 \newcommand{\Tr}{\operatorname{Tr}}
-\newcommand{\rank}{\operatorname{rank}}
+\newcommand{\rank}{\rank}
 \newcommand{\eqnref}[1]{\eqref{#1}}
 
 \hypersetup{
@@ -296,19 +296,19 @@ Let $c_1, \ldots, c_{n_t} \in \{1, \ldots, L\}$ with $L \ge 3$ be $n_t$ categori
     \label{eq:incidence_gram}
     E E^\top = (L - 2) I_L + \mathds{1}_L \mathds{1}_L^\top.
     \end{equation}
-    Its spectrum consists of $\lambda_1(E E^\top) = 2(L - 1)$ (multiplicity $1$, eigenvector $\mathds{1}_L$) and $\lambda_2 = \cdots = \lambda_L = L - 2$ on the centered subspace $\mathds{1}_L^\perp$. Consequently, for any $u \in \mathds{1}_L^\perp$, $E^\top$ is an exact homothety with $\|E^\top u\|_2 = \sqrt{L - 2} \|u\|_2$, establishing $\operatorname{rank}(E) = L$.
+    Its spectrum consists of $\lambda_1(E E^\top) = 2(L - 1)$ (multiplicity $1$, eigenvector $\mathds{1}_L$) and $\lambda_2 = \cdots = \lambda_L = L - 2$ on the centered subspace $\mathds{1}_L^\perp$. Consequently, for any $u \in \mathds{1}_L^\perp$, $E^\top$ is an exact homothety with $\|E^\top u\|_2 = \sqrt{L - 2} \|u\|_2$, establishing $\rank(E) = L$.
     \item[(b)] \textbf{Exact Column Rank of Centered Design $\tilde{X}$:} Centering $X$ via $H_{n_t} = I_{n_t} - \frac{1}{n_t}\mathds{1}_{n_t}\mathds{1}_{n_t}^\top$ yields $\tilde{X} = H_{n_t} M E$, whose covariance Gram matrix satisfies:
     \begin{equation}
     \label{eq:centered_gram_factor}
     \tilde{X} \tilde{X}^\top = (L - 2) H_{n_t} M M^\top H_{n_t},
     \end{equation}
-    with exact column rank $\operatorname{rank}(\tilde{X}) = L_{\mathrm{obs}} - 1 \le \min(n_t - 1, L - 1)$.
+    with exact column rank $\rank(\tilde{X}) = L_{\mathrm{obs}} - 1 \le \min(n_t - 1, L - 1)$.
     \item[(c)] \textbf{Krylov Subspace Degeneracy in Pure Balanced Designs:} When observations are purely categorical and balanced ($n_j = n_t / L$ for all $j$), $\tilde{X}\tilde{X}^\top = \frac{n_t}{L}(L - 2) M H_L M^\top$ has a single distinct non-zero eigenvalue $\frac{n_t}{L}(L - 2)$ of multiplicity $L - 1$. Consequently, the univariate PLS Krylov subspace $\mathcal{K}_m(\tilde{X}^\top \tilde{X}, \tilde{X}^\top \tilde{\bm{y}})$ is 1-dimensional, terminating in a single step ($D_{\outp} = 1$). To extract $D_{\outp} = \frac{1}{2}\ell(\ell-1) \ge 2$ informative directions without Krylov breakdown ($D_{\outp} \le L_{\mathrm{obs}} - 1$), PLS requires coupling with continuous covariates (as in mixed KPLS) or hierarchical categorical groupings.
 \end{enumerate}
 \end{proposition}
 
 \begin{proof}[Proof sketch]
-For (a), row $j$ of $E$ has entry $1$ for each of the $L-1$ edges incident to vertex $j$, so $[E E^\top]_{j, j} = L - 1$. For $j \neq j'$, the pair $\{j, j'\}$ forms a unique edge in $K_L$, so $[E E^\top]_{j, j'} = 1$. Thus $E E^\top = (L - 1)I_L + (\mathds{1}_L\mathds{1}_L^\top - I_L) = (L - 2)I_L + \mathds{1}_L\mathds{1}_L^\top$. For $u \perp \mathds{1}_L$, $E E^\top u = (L - 2)u$, so $\|E^\top u\|_2^2 = (L - 2)\|u\|_2^2$. For $L \ge 3$, $L - 2 > 0$ and $2(L - 1) > 0$, proving $\operatorname{rank}(E) = L$. For (b), $X = M E$ implies $\tilde{X}\tilde{X}^\top = H_{n_t} M E E^\top M^\top H_{n_t}$. Since $M \mathds{1}_L = \mathds{1}_{n_t}$ and $H_{n_t} \mathds{1}_{n_t} = \bm{0}$, the term $\mathds{1}_L \mathds{1}_L^\top$ vanishes, establishing \eqnref{eq:centered_gram_factor}. Since $E$ has full row rank $L$, $\operatorname{rank}(\tilde{X}) = \operatorname{rank}(H_{n_t} M) = L_{\mathrm{obs}} - 1$. For (c), in balanced designs $M^\top M = \frac{n_t}{L} I_L$, deflating residual Krylov directions $m \ge 2$. Complete algebraic details are in Appendix~\ref{subsec:proof_rank_bound}.
+For (a), row $j$ of $E$ has entry $1$ for each of the $L-1$ edges incident to vertex $j$, so $[E E^\top]_{j, j} = L - 1$. For $j \neq j'$, the pair $\{j, j'\}$ forms a unique edge in $K_L$, so $[E E^\top]_{j, j'} = 1$. Thus $E E^\top = (L - 1)I_L + (\mathds{1}_L\mathds{1}_L^\top - I_L) = (L - 2)I_L + \mathds{1}_L\mathds{1}_L^\top$. For $u \perp \mathds{1}_L$, $E E^\top u = (L - 2)u$, so $\|E^\top u\|_2^2 = (L - 2)\|u\|_2^2$. For $L \ge 3$, $L - 2 > 0$ and $2(L - 1) > 0$, proving $\rank(E) = L$. For (b), $X = M E$ implies $\tilde{X}\tilde{X}^\top = H_{n_t} M E E^\top M^\top H_{n_t}$. Since $M \mathds{1}_L = \mathds{1}_{n_t}$ and $H_{n_t} \mathds{1}_{n_t} = \bm{0}$, the term $\mathds{1}_L \mathds{1}_L^\top$ vanishes, establishing \eqnref{eq:centered_gram_factor}. Since $E$ has full row rank $L$, $\rank(\tilde{X}) = \rank(H_{n_t} M) = L_{\mathrm{obs}} - 1$. For (c), in balanced designs $M^\top M = \frac{n_t}{L} I_L$, deflating residual Krylov directions $m \ge 2$. Complete algebraic details are in Appendix~\ref{subsec:proof_rank_bound}.
 \end{proof}
 
 \paragraph{Resolution of Krylov Degeneracy via Joint Continuous--Categorical PLS.}
@@ -317,10 +317,10 @@ Proposition~\ref{prop:rank_bound}(c) establishes that in an uncoupled, purely ca
 \label{eq:joint_pls_matrix}
 X_{\mathrm{joint}} = \begin{bmatrix} X_{\mathrm{quant}} & X_{\mathrm{cat}} \end{bmatrix} \in \mathbb{R}^{n_t \times (d + D_{\inp})}.
 \end{equation}
-The continuous inputs $x \in \mathbb{R}^d$ couple with the response variation across distinct categorical levels, breaking the homothety of $X_{\mathrm{cat}}^\top X_{\mathrm{cat}}$. Specifically, because the global Latin Hypercube design ($n_j = 3$ per level) induces non-zero sample cross-covariances $\tilde{X}_{\mathrm{cat}}^\top \tilde{X}_{\mathrm{quant}} \neq \bm{0}$ across levels and empirical standardization scales each continuous and categorical column by its empirical variance, the joint covariance $\tilde{X}_{\mathrm{joint}}^\top \tilde{X}_{\mathrm{joint}}$ breaks the categorical eigenspace degeneracy. Because $\operatorname{rank}(\tilde{X}_{\mathrm{cat}}) = L_{\mathrm{obs}} - 1$ by Proposition~\ref{prop:rank_bound}(b), concatenating $d$ continuous design columns yields the sharp rank bound:
+The continuous inputs $x \in \mathbb{R}^d$ couple with the response variation across distinct categorical levels, breaking the homothety of $X_{\mathrm{cat}}^\top X_{\mathrm{cat}}$. Specifically, because the global Latin Hypercube design ($n_j = 3$ per level) induces non-zero sample cross-covariances $\tilde{X}_{\mathrm{cat}}^\top \tilde{X}_{\mathrm{quant}} \neq \bm{0}$ across levels and empirical standardization scales each continuous and categorical column by its empirical variance, the joint covariance $\tilde{X}_{\mathrm{joint}}^\top \tilde{X}_{\mathrm{joint}}$ breaks the categorical eigenspace degeneracy. Because $\rank(\tilde{X}_{\mathrm{cat}}) = L_{\mathrm{obs}} - 1$ by Proposition~\ref{prop:rank_bound}(b), concatenating $d$ continuous design columns yields the sharp rank bound:
 \begin{equation}
 \label{eq:krylov_bound}
-\dim \mathcal{K}_m(\tilde{X}_{\mathrm{joint}}^\top \tilde{X}_{\mathrm{joint}}, \tilde{X}_{\mathrm{joint}}^\top \tilde{\bm{y}}) \le \operatorname{rank}(\tilde{X}_{\mathrm{joint}}) \le \min(n_t - 1, d + L_{\mathrm{obs}} - 1).
+\dim \mathcal{K}_m(\tilde{X}_{\mathrm{joint}}^\top \tilde{X}_{\mathrm{joint}}, \tilde{X}_{\mathrm{joint}}^\top \tilde{\bm{y}}) \le \rank(\tilde{X}_{\mathrm{joint}}) \le \min(n_t - 1, d + L_{\mathrm{obs}} - 1).
 \end{equation}
 Equality holds generically whenever the continuous design columns are linearly independent, the centered joint covariance matrix $\tilde{X}_{\mathrm{joint}}^\top \tilde{X}_{\mathrm{joint}}$ possesses mutually distinct non-zero eigenvalues, and the initial PLS projection vector $\tilde{X}_{\mathrm{joint}}^\top \tilde{\bm{y}}$ is not orthogonal to any invariant eigenspace. To ensure that $D_{\outp} = \frac{1}{2}\ell(\ell-1)$ non-degenerate latent directions can be extracted without Krylov rank starvation, the mixed problem must satisfy $d + L_{\mathrm{obs}} - 1 \ge D_{\outp}$. In our multi-material benchmarks ($n_t = 36 - 60, d \ge 3, L \ge 12$), continuous and categorical columns are standardized prior to decomposition, and NIPALS PLS extracts $D_{\outp} = 3$ non-degenerate orthogonal components with non-vanishing weight norms ($\|w_k\| \in \{37.5, 4.32, 7.37\}$), fully eliminating the 1-dimensional Krylov collapse. From the joint rotation matrix $G_{\mathrm{joint}} = W_{\mathrm{joint}} (P_{\mathrm{joint}}^\top W_{\mathrm{joint}})^{-1}$, the categorical submatrix $G_{\mathrm{cat}} = [G_{\mathrm{joint}}]_{d+1:d+D_{\inp}, \cdot} \in \mathbb{R}^{D_{\inp} \times D_{\outp}}$ is extracted and row-normalized to yield the valid unit-row-norm reconstruction weights $G_* \in \mathbb{R}^{D_{\inp} \times D_{\outp}}$ for all $D_{\outp} = \frac{1}{2}\ell(\ell-1)$ latent dimensions.
 
@@ -1343,7 +1343,7 @@ For any vector $u \in \mathds{1}_L^\perp$ orthogonal to $\mathds{1}_L$ ($u^\top 
 E E^\top u = (L - 2) u.
 \end{equation}
 Thus, the orthogonal complement $\mathds{1}_L^\perp$ is an eigenspace of dimension $L - 1$ associated with the repeated eigenvalue $\lambda_2 = \dots = \lambda_L = L - 2$.
-For $L \ge 3$, $L - 2 > 0$, so all $L$ eigenvalues of $E E^\top$ are strictly positive. Hence $E E^\top \succ 0$, establishing $\operatorname{rank}(E) = L$ directly. Moreover, for any $u \in \mathds{1}_L^\perp$,
+For $L \ge 3$, $L - 2 > 0$, so all $L$ eigenvalues of $E E^\top$ are strictly positive. Hence $E E^\top \succ 0$, establishing $\rank(E) = L$ directly. Moreover, for any $u \in \mathds{1}_L^\perp$,
 \begin{equation}
 \|E^\top u\|_2^2 = u^\top E E^\top u = (L - 2) \|u\|_2^2 \implies \|E^\top u\|_2 = \sqrt{L - 2} \|u\|_2,
 \end{equation}
@@ -1364,11 +1364,11 @@ Consequently, we obtain the exact factorization:
 \label{eq:appendix_centered_gram}
 \tilde{X} \tilde{X}^\top = (L - 2) H_{n_t} M M^\top H_{n_t}.
 \end{equation}
-Because $L \ge 3$, $L - 2 > 0$, so $\operatorname{rank}(\tilde{X} \tilde{X}^\top) = \operatorname{rank}(H_{n_t} M M^\top H_{n_t}) = \operatorname{rank}(H_{n_t} M)$.
+Because $L \ge 3$, $L - 2 > 0$, so $\rank(\tilde{X} \tilde{X}^\top) = \rank(H_{n_t} M M^\top H_{n_t}) = \rank(H_{n_t} M)$.
 The uncentered assignment matrix $M \in \{0, 1\}^{n_t \times L}$ has rank equal to the number of observed levels $L_{\mathrm{obs}}$.
 Since $\mathds{1}_{n_t} = M \mathds{1}_L \in \operatorname{col}(M)$, the rank-nullity theorem implies that the centering operator $H_{n_t}$, whose kernel is $\operatorname{span}(\mathds{1}_{n_t})$, deflates the rank of $M$ by exactly 1:
 \begin{equation}
-\operatorname{rank}(\tilde{X}) = \operatorname{rank}(H_{n_t} M) = L_{\mathrm{obs}} - 1 \le \min(n_t - 1, L - 1).
+\rank(\tilde{X}) = \rank(H_{n_t} M) = L_{\mathrm{obs}} - 1 \le \min(n_t - 1, L - 1).
 \end{equation}
 
 \textit{Proof of (c).}
