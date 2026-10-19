@@ -143,9 +143,9 @@ Table~\ref{tab:sota_positioning} summarizes the positioning of the proposed Row-
 \begin{table}[htbp]
 \caption{Methodological positioning of categorical covariance architectures for Gaussian process emulation.}
 \label{tab:positioning}\label{tab:sota_positioning}
-\scriptsize
-\setlength{\tabcolsep}{2.5pt}
-\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}l c c c c c c c@{}}
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{l c c c c c c c}
 \toprule
 \textbf{Methodology} & \textbf{Ref.} & \textbf{Hyperparam.} & \textbf{Guaranteed} & \textbf{Unit} & \textbf{Supervised} & \textbf{Exact} & \textbf{Cost /} \\
  & & \textbf{Count} & \textbf{SPD ($\Theta \succ 0$)} & \textbf{Diag.} & \textbf{Reduct.} & \textbf{Grad.} & \textbf{Step} \\
@@ -160,7 +160,8 @@ Categorical PLS + Higham & \cite{saves2023high,higham2002computing} & $\frac{1}{
 \midrule
 \textbf{RN-PLS + Gershgorin / MDG} & \textbf{This Work} & $\frac{1}{2}\ell(\ell-1)$ & \textbf{Yes} & \textbf{Yes} & \textbf{Yes} & \textbf{Yes} & $\mathbf{O(L^2)}$ \\
 \bottomrule
-\end{tabular*}
+\end{tabular}%
+}
 \end{table}
 
 \section{Statistical Framework and the RN-PLS Architecture}
@@ -308,12 +309,12 @@ For (a), row $j$ of $E$ has entry $1$ for each of the $L-1$ edges incident to ve
 \paragraph{Resolution of Krylov Degeneracy via Joint Continuous--Categorical PLS.}
 Proposition~\ref{prop:rank_bound}(c) establishes that in an uncoupled, purely categorical balanced design with no continuous variation, the covariance operator collapses onto a single non-trivial eigenspace, rendering higher-order categorical Krylov directions uninformative. In mixed-variable Gaussian process emulation (as implemented in the Surrogate Modeling Toolbox and evaluated in our benchmarks), this degeneracy is naturally eliminated: PLS regression is performed on the joint design matrix:
 \begin{equation}
-\label{eq:joint_pls_matrix}\label{eq:X_joint}
+\label{eq:joint_pls_matrix}
 X_{\mathrm{joint}} = \begin{bmatrix} X_{\mathrm{quant}} & X_{\mathrm{cat}} \end{bmatrix} \in \mathbb{R}^{n_t \times (d + D_{\inp})}.
 \end{equation}
 While empirical column standardization scales all categorical columns of $X_{\mathrm{cat}}$ by an identical factor in balanced designs ($n_j = n_t/L$), the continuous inputs $x \in \mathbb{R}^d$ couple with the response variation across distinct categorical levels. Specifically, because the global Latin Hypercube design ($n_j = 3$ per level) induces non-zero sample cross-covariances $\tilde{X}_{\mathrm{cat}}^\top \tilde{X}_{\mathrm{quant}} \neq \bm{0}$ across levels, the joint covariance $\tilde{X}_{\mathrm{joint}}^\top \tilde{X}_{\mathrm{joint}}$ breaks the invariant eigenspace homothety of $\tilde{X}_{\mathrm{cat}}^\top \tilde{X}_{\mathrm{cat}}$. Because $\rank(\tilde{X}_{\mathrm{cat}}) = L_{\mathrm{obs}} - 1$ by Proposition~\ref{prop:rank_bound}(b), concatenating $d$ continuous design columns yields the sharp rank bound:
 \begin{equation}
-\label{eq:krylov_bound}\label{eq:krylov_rank_bound}
+\label{eq:krylov_bound}
 \dim \mathcal{K}_m(\tilde{X}_{\mathrm{joint}}^\top \tilde{X}_{\mathrm{joint}}, \tilde{X}_{\mathrm{joint}}^\top \tilde{\bm{y}}) \le \rank(\tilde{X}_{\mathrm{joint}}) \le \min(n_t - 1, d + L_{\mathrm{obs}} - 1).
 \end{equation}
 Equality holds generically whenever the continuous design columns are linearly independent, the centered joint covariance matrix $\tilde{X}_{\mathrm{joint}}^\top \tilde{X}_{\mathrm{joint}}$ possesses mutually distinct non-zero eigenvalues, and the initial PLS projection vector $\tilde{X}_{\mathrm{joint}}^\top \tilde{\bm{y}}$ is not orthogonal to any invariant eigenspace. To ensure that $D_{\outp} = \frac{1}{2}\ell(\ell-1)$ non-degenerate latent directions can be extracted without Krylov rank starvation, the mixed problem must satisfy $d + L_{\mathrm{obs}} - 1 \ge D_{\outp}$. In our multi-material benchmarks ($n_t = 36\text{--}60, d \ge 3, L \ge 12$), continuous and categorical columns are standardized prior to decomposition, and NIPALS PLS extracts $D_{\outp} = 3$ non-degenerate orthogonal components with non-vanishing unnormalized weight norms (e.g., $\|g_k\|_2 \in \{37.5, 4.32, 7.37\}$ on the cantilever benchmark of Section~\ref{sec:cantilever_beam}), fully eliminating the 1-dimensional Krylov collapse. Let $G_{\mathrm{PLS}}, \Xi_{\mathrm{PLS}} \in \mathbb{R}^{(d+D_{\inp}) \times D_{\outp}}$ denote the joint NIPALS weight and loading matrices, respectively. From the joint rotation matrix $G_{\mathrm{joint}} = G_{\mathrm{PLS}}(\Xi_{\mathrm{PLS}}^\top G_{\mathrm{PLS}})^{-1}$, the raw categorical submatrix $G_*^{\mathrm{raw}} = [G_{\mathrm{joint}}]_{d+1:d+D_{\inp}, \cdot} \in \mathbb{R}^{D_{\inp} \times D_{\outp}}$ is extracted and row-normalized to yield the valid unit-row-norm reconstruction weights $G_* \in \mathbb{R}^{D_{\inp} \times D_{\outp}}$ for all $D_{\outp} = \frac{1}{2}\ell(\ell-1)$ latent dimensions.
@@ -595,7 +596,7 @@ Because $\ell \ll L$, we have $\frac{1}{\ell - 1} \gg \frac{1}{L - 1}$. For exam
 Thus, compressing an $L \times L$ correlation matrix down to $\ell \times \ell$ preserves positive definiteness over an order-of-magnitude broader range of correlation strengths ($9.5\times$ wider) than reconstructing from $\ell \times \ell$ up to $L \times L$ (see Table~\ref{tab:operator_comparison} in Appendix~\ref{subsec:app_operator_duality} for a complete property-by-property comparison).
 \end{remark}
 
-\subsection{Fast \texorpdfstring{$O(L^2)$}{O(L^2)} Ledoit--Wolf Spectral Repair Operators}
+\subsection{Fast \texorpdfstring{$O(L^2)$}{O(L2)} Ledoit--Wolf Spectral Repair Operators}
 \label{subsec:repair_operators}
 
 When the latent correlation $\rho_{\max}$ violates the sufficient Gershgorin threshold $\frac{1}{L-1}$, the reconstructed matrix $\Theta = \mathcal{T}_{G_*}(\hat{\Theta})$ is not guaranteed to remain positive definite, and indeed frequently develops negative eigenvalues (as characterized analytically by Proposition~\ref{prop:spectral_bounds} and confirmed numerically in Section~\ref{sec:simulations}). In early engineering implementations \citep{saves2023high,saves2023smt}, numerical non-definiteness was handled by adding an un-normalized diagonal nugget $\Theta_{\mathrm{nugget}} = \Theta + \eta I_L$. While shifting eigenvalues by $+\eta$, this ad-hoc intervention produces severe statistical and geometric pathologies: it violates the unit-diagonal constraint of the correlation elliptope ($[\Theta_{\mathrm{nugget}}]_{j, j} = 1 + \eta \neq 1$) and artificially inflates the Gaussian process variance to $\sigma^2(1+\eta)$, systematically miscalibrating posterior predictive intervals. If entrywise renormalization $[\Theta]_{j, j'} / (1+\eta)$ is subsequently attempted, positive definiteness is generally destroyed.
@@ -710,7 +711,7 @@ Let $\hat{\bm{\theta}} = (\theta_1, \ldots, \theta_{D_{\outp}})^\top \in \mathbb
 \begin{enumerate}
     \item[(a)] \textbf{Inactive Regularization Regime ($\eta = 0$):} On the open set where $\eta = 0$, $\Theta_{\mathrm{SPD}} = \Theta$ is smooth with linear Jacobian:
     \begin{equation}
-    \label{eq:grad_inactive}\label{eq:jac_inactive}
+    \label{eq:grad_inactive}
     \frac{\partial [\Theta_{\mathrm{SPD}}]_{j, j'}}{\partial \theta_p} =
     \begin{cases}
     0, & \text{if } j = j', \\
@@ -721,13 +722,16 @@ Let $\hat{\bm{\theta}} = (\theta_1, \ldots, \theta_{D_{\outp}})^\top \in \mathbb
     \begin{itemize}
         \item \emph{Fast Gershgorin Shift ($\eta = \eta_{\mathrm{Gersh}} > 0$):} Let $j^* = \arg\max_{1 \le j \le L} \sum_{j' \neq j} |[\Theta]_{j, j'}|$. On any open polyhedral chamber where $j^*$ is unique and $[\Theta]_{j^*, j'} \neq 0$ for all $j' \neq j^*$, the shift derivative with respect to $\theta_p$ is:
         \begin{equation}
-        \label{eq:eta_gradient}\label{eq:grad_eta_gersh}
+        \label{eq:eta_gradient}
         \frac{\partial \eta_{\mathrm{Gersh}}}{\partial \theta_p} = \sum_{j' \neq j^*} \operatorname{sgn}\bigl([\Theta]_{j^*, j'}\bigr) \left( [G_*]_{\psi(\min(j^*, j'), \max(j^*, j'), L), p} \right)^2.
         \end{equation}
         \item \emph{Mean-Deflated Gershgorin Shift ($\eta = \eta_{\mathrm{MDG}} > 0$):} Let $j_{\mathrm{MDG}}^* = \arg\max_{1 \le j \le L} \sum_{j' \neq j} |[\Theta]_{j, j'} - \bar{\rho}_+(\Theta)|$. By Theorem~\ref{th:roundtrip_contraction}, the derivative of the mean positive off-diagonal correlation $\bar{\rho}_+(\Theta)$ on the open set $\{\bar{\rho}_+(\Theta) > 0\}$ equals the stationary Markov probability $\pi_p = \frac{1}{D_{\inp}}\sum_{r=1}^{D_{\inp}} ([G_*]_{r, p})^2$ (and vanishes when $\bar{\rho}_+(\Theta) = 0$). On any open chamber where $j_{\mathrm{MDG}}^*$ is unique and $[\Theta]_{j_{\mathrm{MDG}}^*, j'} \neq \bar{\rho}_+(\Theta)$ for all $j' \neq j_{\mathrm{MDG}}^*$, the shift derivative is:
         \begin{equation}
         \label{eq:grad_eta_mdg}
-        \frac{\partial \eta_{\mathrm{MDG}}}{\partial \theta_p} = \frac{\partial \bar{\rho}_+}{\partial \theta_p} + \sum_{j' \neq j_{\mathrm{MDG}}^*} \operatorname{sgn}\bigl([\Theta]_{j_{\mathrm{MDG}}^*, j'} - \bar{\rho}_+(\Theta)\bigr) \left( \left( [G_*]_{\psi(\min(j_{\mathrm{MDG}}^*, j'), \max(j_{\mathrm{MDG}}^*, j'), L), p} \right)^2 - \frac{\partial \bar{\rho}_+}{\partial \theta_p} \right).
+        \begin{split}
+        \frac{\partial \eta_{\mathrm{MDG}}}{\partial \theta_p} = \frac{\partial \bar{\rho}_+}{\partial \theta_p} + \sum_{j' \neq j_{\mathrm{MDG}}^*} &\operatorname{sgn}\bigl([\Theta]_{j_{\mathrm{MDG}}^*, j'} - \bar{\rho}_+(\Theta)\bigr) \\
+        &\times \left( \left( [G_*]_{\psi(\min(j_{\mathrm{MDG}}^*, j'), \max(j_{\mathrm{MDG}}^*, j'), L), p} \right)^2 - \frac{\partial \bar{\rho}_+}{\partial \theta_p} \right).
+        \end{split}
         \end{equation}
         For the adaptive envelope $\eta_{\mathrm{MDG}^*} = \min(\eta_{\mathrm{Gersh}}, \eta_{\mathrm{MDG}})$, $\frac{\partial \eta_{\mathrm{MDG}^*}}{\partial \theta_p}$ selects~\eqref{eq:eta_gradient} when $\eta_{\mathrm{Gersh}} < \eta_{\mathrm{MDG}}$ and~\eqref{eq:grad_eta_mdg} when $\eta_{\mathrm{MDG}} < \eta_{\mathrm{Gersh}}$.
     \end{itemize}
@@ -1044,7 +1048,10 @@ A central practical consideration in Gaussian process emulation is the numerical
 \end{equation}
 Because the relative nugget $\tau^2$ is a fixed dimensionless hyperparameter, the normalized training correlation matrix $K_{\mathrm{train}}(\bm{\theta}, \hat{\Theta})$ is independent of the process variance $\sigma^2$. Differentiating the Gaussian log-likelihood:
 \begin{equation}
-\ln p(\bm{y} \mid \bm{\theta}, \hat{\Theta}, \sigma^2) = -\frac{n_t}{2}\ln(2\pi) - \frac{n_t}{2}\ln(\sigma^2) - \frac{1}{2}\ln\det\bigl(K_{\mathrm{train}}(\bm{\theta}, \hat{\Theta})\bigr) - \frac{1}{2\sigma^2}\bm{y}^\top K_{\mathrm{train}}(\bm{\theta}, \hat{\Theta})^{-1}\bm{y}
+\begin{split}
+\ln p(\bm{y} \mid \bm{\theta}, \hat{\Theta}, \sigma^2) = &-\frac{n_t}{2}\ln(2\pi) - \frac{n_t}{2}\ln(\sigma^2) \\
+&- \frac{1}{2}\ln\det\bigl(K_{\mathrm{train}}(\bm{\theta}, \hat{\Theta})\bigr) - \frac{1}{2\sigma^2}\bm{y}^\top K_{\mathrm{train}}(\bm{\theta}, \hat{\Theta})^{-1}\bm{y}
+\end{split}
 \end{equation}
 with respect to $\sigma^2$ yields the exact closed-form profile estimate $\hat{\sigma}^2 = \frac{1}{n_t} \bm{y}^\top K_{\mathrm{train}}(\bm{\theta}, \hat{\Theta})^{-1} \bm{y}$. Substituting $\hat{\sigma}^2$ back concentrates out the process variance analytically, leaving the continuous lengthscales $\bm{\theta}$ and latent correlation parameters $\hat{\Theta}$ to be estimated by minimizing the concentrated negative profile log-likelihood:
 \begin{equation}
@@ -1083,7 +1090,7 @@ To evaluate whether the piecewise-smooth structure affects numerical convergence
 As shown in Figure~\ref{fig:repair_tradeoff}(b) (and further illustrated for large dimensions $L \le 80$ in Figure~\ref{fig:runtime_scaling}(a)), because Gershgorin and MDG repair rely solely on row operations ($O(L^2)$ flops) rather than iterative symmetric QR eigensolvers ($O(L^3)$ flops), the average wall-clock time per 5-start MLE fit dropped from $1.60 \pm 0.28$~s for Exact Spectral Repair and $2.23 \pm 0.35$~s for SVD Clipping down to \textbf{$0.42 \pm 0.07$~s} for Gershgorin repair and \textbf{$0.44 \pm 0.08$~s} for MDG. This represents a \textbf{73.8\% runtime reduction} relative to Exact Spectral Repair and an \textbf{81.2\% reduction} relative to SVD Clipping, confirming that the quadratic algebraic scaling translates directly into substantial computational speedups during Gaussian process training.
 
 \subsection{Statistical Emulation Benchmark across Varied Qualitative Landscapes}
-\label{subsec:multifunc}\label{subsec:sim_benchmarks}
+\label{sec:multifunction_benchmark}\label{subsec:multifunc}\label{subsec:sim_benchmarks}
 
 Having established the numerical stability and runtime scaling of the regularized profile likelihood solver, we now evaluate the predictive emulation accuracy and conditioning of the five regularization strategies across synthetic and multimodal test functions.
 
@@ -1093,9 +1100,9 @@ We evaluated a synthetic Gaussian process emulation experiment over $L = 15$ cat
 \begin{table}[htbp]
 \caption{Comparison of regularization strategies across 200 non-SPD test instances ($L = 15, \ell = 3$).}
 \label{tab:reg_comparison}\label{tab:regularization_comparison}
-\footnotesize
-\setlength{\tabcolsep}{6pt}
-\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}l c c c c@{}}
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{l c c c c}
 \toprule
 \textbf{Regularization Strategy} & \textbf{Mean Cond $\kappa(K_{\mathrm{train}})$} & \textbf{Unit Diagonals?} & \textbf{Complexity} & \textbf{Test RMSE} \\
 \midrule
@@ -1105,7 +1112,8 @@ Repair (Exact $\eta_{\mathrm{exact}}$) & $(6.78 \pm 0.44) \times 10^4$ & Yes & $
 \textbf{Repair (Gershgorin $\eta_{\mathrm{Gersh}}$)} & $\mathbf{(4.35 \pm 0.58) \times 10^4}$ & \textbf{Yes} & $\mathbf{O(L^2)}$ & $\mathbf{0.00585 \pm 0.00107}$ \\
 \textbf{Repair (MDG $\eta_{\mathrm{MDG}^*}$)} & $\mathbf{(6.81 \pm 0.46) \times 10^4}$ & \textbf{Yes} & $\mathbf{O(L^2)}$ & $\mathbf{0.00588 \pm 0.00108}$ \\
 \bottomrule
-\end{tabular*}
+\end{tabular}%
+}
 \end{table}
 
 \paragraph{Analysis of Numerical Conditioning and Invariance.}
@@ -1192,14 +1200,14 @@ As shown in Table~\ref{tab:multifunc_benchmark} and visualized in Figure~\ref{fi
 \paragraph{Predictive Volatility and Numerical Outliers under the Raw Nugget.}
 Inspection of the error distributions across all 50 replications clarifies why the raw diagonal nugget strategy exhibits high predictive standard deviations ($2.28 \pm 4.61$ on $f_1$, $1.03 \pm 2.19$ on $f_2$, and $0.82 \pm 1.45$ on $f_3$). On $f_1$, exactly 5 out of 50 replications (10.0\%) under the raw nugget suffered near-singular condition number spikes ($\kappa(K_{\mathrm{train}}) \approx 1.5 \times 10^6 - 2.5 \times 10^6$), where floating-point error amplification during the linear solve produced test RMSEs exceeding 10.0 (up to 28.4). In terms of robust non-parametric statistics, the median test RMSE of the raw nugget on $f_1$ is 0.98 (IQR $[0.72, 1.45]$). In contrast, Gershgorin repair experienced zero near-singular breakdowns across all runs, yielding a maximum test RMSE of 1.18 and a median of 0.83 (IQR $[0.76, 0.91]$). Furthermore, the un-normalized shift $[\Theta_{\mathrm{nugget}}]_{j, j} = 1 + \eta$ violates the unit-diagonal geometry of the correlation elliptope, artificially inflating diagonal entries, dilating the effective signal variance to $\sigma^2(1+\eta)$, and misaligning the trade-off between categorical cross-correlations and continuous distance scales during MLE optimization.
 
-\paragraph{Baseline Predictive Error and Additive Stress Testing on $f_1$.}
+\paragraph{Baseline Predictive Error and Additive Stress Testing on \texorpdfstring{$f_1$}{f1}.}
 Across all five regularization methods in Table~\ref{tab:multifunc_benchmark}, the baseline test RMSE on $f_1$ ($0.83 - 0.98$) is noticeably higher than on $f_2$ ($0.18 - 0.38$) and $f_3$ ($0.12 - 0.22$). This occurs because the harmonic benchmark function $f_1(x, c) = \sin(2\pi x) + \cos(2\pi c/L) + 0.1 x (c/L)$ is fundamentally dominated by an additive superposition of a full-period continuous oscillation and a discrete categorical oscillation, whereas the Gaussian process emulator in \eqnref{eq:gp_model} employs a purely multiplicative (separable tensor product) covariance kernel $R_{\mathrm{quant}}(x, x') \, [\Theta]_{c, c'}$ with only $n_j = 3$ observations per level. Under a multiplicative kernel without an explicit additive decomposition, $n_j = 3$ training points per level cannot simultaneously resolve high-frequency continuous oscillations in $x$ while decoupling the independent additive categorical shifts. Thus, $f_1$ serves intentionally as an additive misspecification stress test for multiplicative covariance models, reinforcing the motivation for the additive and ANOVA kernel extensions outlined in Section~\ref{sec:conclu}.
 
 \paragraph{Complementary Roles of Fast Gershgorin and Mean-Deflated Repair.}
 The multi-function benchmark results in Table~\ref{tab:multifunc_benchmark} clarify the complementary roles of the two $O(L^2)$ repair operators. Fast Gershgorin repair applies conservative shrinkage $\alpha = \frac{\eta_{\mathrm{Gersh}}}{1 + \eta_{\mathrm{Gersh}}}$ toward the identity $I_L$. In surrogate modeling, this provides an effective regularizing trade-off: dampening extreme off-diagonal correlations prevents near-collinear categorical representations and achieves the lowest condition number across all benchmarks ($\kappa \approx 6.8\times 10^4 - 7.0\times 10^4$), yielding the lowest RMSE when off-diagonal noise or ill-conditioning dominates ($0.19 \pm 0.06$ on $f_2$ and $0.13 \pm 0.06$ on $f_3$). Conversely, when genuine positive correlations cluster across categories, deflating the mean non-negative correlation $\bar{\rho}_+$ via Mean-Deflated Gershgorin (MDG) eliminates this conservative over-shrinkage cap. As demonstrated in Table~\ref{tab:multifunc_benchmark}, MDG closely matches the condition number of Exact Spectral Repair ($(1.22 - 1.25) \times 10^5$) while matching or improving upon Exact Spectral Repair in predictive emulation accuracy (median test RMSE $0.84$ on $f_1$, $0.21$ on $f_2$, and $0.14$ on $f_3$, compared to $0.92, 0.29$, and $0.21$ for Exact Repair). Notably, MDG achieves this parity in $O(L^2)$ flops without eigenvalue factorizations.
 
 \subsection{Engineering Case Study: Mixed-Variable Structural Surrogate of an Aerospace Cantilever Beam}
-\label{subsec:cantilever_benchmark}
+\label{sec:cantilever_beam}\label{subsec:cantilever_benchmark}
 
 To establish the practical engineering utility of PLS categorical dimension reduction and evaluate the spectral repair strategies on a realistic physical application, we investigated a mixed continuous--categorical structural mechanics benchmark: the tip deflection of an aerospace cantilever beam subjected to a vertical aerodynamic tip load $P_y = 15\,\mathrm{kN}$.
 
@@ -1345,7 +1353,10 @@ In a balanced design with pure categorical inputs, each of the $L$ levels appear
 The non-zero eigenvalues of $\tilde{X} \tilde{X}^\top = (L - 2) H_{n_t} M M^\top H_{n_t}$ coincide with those of $(L - 2) M^\top H_{n_t} M$.
 Using $M^\top \mathds{1}_{n_t} = \frac{n_t}{L} \mathds{1}_L$, we have:
 \begin{equation}
-M^\top H_{n_t} M = M^\top M - \frac{1}{n_t} (M^\top \mathds{1}_{n_t})(M^\top \mathds{1}_{n_t})^\top = \frac{n_t}{L} I_L - \frac{n_t}{L^2} \mathds{1}_L \mathds{1}_L^\top = \frac{n_t}{L} \left( I_L - \frac{1}{L} \mathds{1}_L \mathds{1}_L^\top \right) = \frac{n_t}{L} H_L,
+\begin{split}
+M^\top H_{n_t} M &= M^\top M - \frac{1}{n_t} (M^\top \mathds{1}_{n_t})(M^\top \mathds{1}_{n_t})^\top \\
+&= \frac{n_t}{L} I_L - \frac{n_t}{L^2} \mathds{1}_L \mathds{1}_L^\top = \frac{n_t}{L} \left( I_L - \frac{1}{L} \mathds{1}_L \mathds{1}_L^\top \right) = \frac{n_t}{L} H_L,
+\end{split}
 \end{equation}
 where $H_L$ is the orthogonal centering projector in $\mathbb{R}^L$. Thus:
 \begin{equation}
@@ -1375,7 +1386,10 @@ Because $A \mathds{1}_{D_{\outp}} = \mathds{1}_{D_{\inp}}$ by Assumption~\ref{as
 Multiplying $M$ by $D_{\mathrm{col}}$ gives $D_{\mathrm{col}} M = A^\top A = (D_{\mathrm{col}} M)^\top = M^\top D_{\mathrm{col}}$, which is the detailed balance condition.
 Because $\sum_{p=1}^{D_{\outp}} d_p = \sum_{r=1}^{D_{\inp}} \sum_{p=1}^{D_{\outp}} A_{r, p} = D_{\inp}$, the vector $\bm{\pi} = \frac{1}{D_{\inp}}\bm{d}$ lies in the probability simplex $\Delta_{D_{\outp}}$ and satisfies:
 \begin{equation}
-\bm{\pi}^\top M = \frac{1}{D_{\inp}} \bm{d}^\top (D_{\mathrm{col}}^{-1} A^\top A) = \frac{1}{D_{\inp}} \mathds{1}_{D_{\outp}}^\top A^\top A = \frac{1}{D_{\inp}} (A \mathds{1}_{D_{\outp}})^\top A = \frac{1}{D_{\inp}} \mathds{1}_{D_{\inp}}^\top A = \frac{1}{D_{\inp}} \bm{d}^\top = \bm{\pi}^\top.
+\begin{split}
+\bm{\pi}^\top M &= \frac{1}{D_{\inp}} \bm{d}^\top (D_{\mathrm{col}}^{-1} A^\top A) = \frac{1}{D_{\inp}} \mathds{1}_{D_{\outp}}^\top A^\top A \\
+&= \frac{1}{D_{\inp}} (A \mathds{1}_{D_{\outp}})^\top A = \frac{1}{D_{\inp}} \mathds{1}_{D_{\inp}}^\top A = \frac{1}{D_{\inp}} \bm{d}^\top = \bm{\pi}^\top.
+\end{split}
 \end{equation}
 
 For (b), let $B = A D_{\mathrm{col}}^{-1/2} \in \mathbb{R}^{D_{\inp} \times D_{\outp}}$. Then $S = D_{\mathrm{col}}^{1/2} M D_{\mathrm{col}}^{-1/2} = D_{\mathrm{col}}^{-1/2} A^\top A D_{\mathrm{col}}^{-1/2} = B^\top B$.
@@ -1443,7 +1457,10 @@ Because $d_\Theta^2(c, c') = \|v_c - v_{c'}\|_2^2$ is an exact squared Euclidean
 For each fixed $s > 0$, the kernel $(c, c') \mapsto \exp\bigl(-s d_\Theta^2(c, c')\bigr) = \exp\bigl(-s \|v_c - v_{c'}\|_2^2\bigr)$ is positive semidefinite by Schoenberg's theorem \citep{schoenberg1938metric}.
 Integrating over $s$ preserves positive semidefiniteness: for any vector $u \in \mathbb{R}^n$ and distinct levels $c_1, \dots, c_n$,
 \begin{equation}
-u^\top K_\varphi u = \sum_{r, r'=1}^n u_r u_{r'} \int_0^\infty e^{-s d_\Theta^2(c_r, c_{r'})} \, \mathrm{d}\mu(s) = \int_0^\infty \left( \sum_{r, r'=1}^n u_r u_{r'} e^{-s \|v_{c_r} - v_{c_{r'}}\|_2^2} \right) \mathrm{d}\mu(s) \ge 0.
+\begin{split}
+u^\top K_\varphi u &= \sum_{r, r'=1}^n u_r u_{r'} \int_0^\infty e^{-s d_\Theta^2(c_r, c_{r'})} \, \mathrm{d}\mu(s) \\
+&= \int_0^\infty \left( \sum_{r, r'=1}^n u_r u_{r'} e^{-s \|v_{c_r} - v_{c_{r'}}\|_2^2} \right) \mathrm{d}\mu(s) \ge 0.
+\end{split}
 \end{equation}
 To establish strict positive definiteness ($K_\varphi \succ 0$), note that $\det(\Theta) = (\det(V))^2 > 0$ implies that the Cholesky vectors $\{v_1, \dots, v_L\}$ are linearly independent and hence mutually distinct ($v_c \neq v_{c'}$ for $c \neq c'$).
 By Micchelli's radial basis function interpolation theorem \citep{micchelli1986interpolation}, for any strictly completely monotonic function (where $\mu$ is not concentrated at $0$), the matrix $[e^{-s \|v_{c_r} - v_{c_{r'}}\|_2^2}]_{r, r'=1}^n$ is strictly positive definite for all $s > 0$.
