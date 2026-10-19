@@ -143,9 +143,9 @@ Table~\ref{tab:sota_positioning} summarizes the positioning of the proposed Row-
 \begin{table}[htbp]
 \caption{Methodological positioning of categorical covariance architectures for Gaussian process emulation.}
 \label{tab:positioning}\label{tab:sota_positioning}
-\centering
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{l c c c c c c c}
+\scriptsize
+\setlength{\tabcolsep}{2pt}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}l c c c c c c c@{}}
 \toprule
 \textbf{Methodology} & \textbf{Ref.} & \textbf{Hyperparam.} & \textbf{Guaranteed} & \textbf{Unit} & \textbf{Supervised} & \textbf{Exact} & \textbf{Cost /} \\
  & & \textbf{Count} & \textbf{SPD ($\Theta \succ 0$)} & \textbf{Diag.} & \textbf{Reduct.} & \textbf{Grad.} & \textbf{Step} \\
@@ -160,8 +160,7 @@ Categorical PLS + Higham & \cite{saves2023high,higham2002computing} & $\frac{1}{
 \midrule
 \textbf{RN-PLS + Gershgorin / MDG} & \textbf{This Work} & $\frac{1}{2}\ell(\ell-1)$ & \textbf{Yes} & \textbf{Yes} & \textbf{Yes} & \textbf{Yes} & $\mathbf{O(L^2)}$ \\
 \bottomrule
-\end{tabular}%
-}
+\end{tabular*}
 \end{table}
 
 \section{Statistical Framework and the RN-PLS Architecture}
@@ -1100,9 +1099,9 @@ We evaluated a synthetic Gaussian process emulation experiment over $L = 15$ cat
 \begin{table}[htbp]
 \caption{Comparison of regularization strategies across 200 non-SPD test instances ($L = 15, \ell = 3$).}
 \label{tab:reg_comparison}\label{tab:regularization_comparison}
-\centering
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{l c c c c}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}l c c c c@{}}
 \toprule
 \textbf{Regularization Strategy} & \textbf{Mean Cond $\kappa(K_{\mathrm{train}})$} & \textbf{Unit Diagonals?} & \textbf{Complexity} & \textbf{Test RMSE} \\
 \midrule
@@ -1112,8 +1111,7 @@ Repair (Exact $\eta_{\mathrm{exact}}$) & $(6.78 \pm 0.44) \times 10^4$ & Yes & $
 \textbf{Repair (Gershgorin $\eta_{\mathrm{Gersh}}$)} & $\mathbf{(4.35 \pm 0.58) \times 10^4}$ & \textbf{Yes} & $\mathbf{O(L^2)}$ & $\mathbf{0.00585 \pm 0.00107}$ \\
 \textbf{Repair (MDG $\eta_{\mathrm{MDG}^*}$)} & $\mathbf{(6.81 \pm 0.46) \times 10^4}$ & \textbf{Yes} & $\mathbf{O(L^2)}$ & $\mathbf{0.00588 \pm 0.00108}$ \\
 \bottomrule
-\end{tabular}%
-}
+\end{tabular*}
 \end{table}
 
 \paragraph{Analysis of Numerical Conditioning and Invariance.}
