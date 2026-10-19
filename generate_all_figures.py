@@ -150,7 +150,7 @@ def generate_fig1():
 
     ax2.set_xlabel(r'Intra-Cluster Correlation $\rho_{\mathrm{in}} \in [0.1, 0.9]$ ($L=20$)')
     ax2.set_ylabel(r'Relative Metric Distortion $\|\Theta_{\mathrm{SPD}} - \Theta_{\mathrm{true}}\|_F / \|\Theta_{\mathrm{true}}\|_F$')
-    ax2.set_title(r'(b) Preservation of Metallurgical Block Structure (Theorem 8(d))')
+    ax2.set_title(r'(b) Preservation of Positive Block Correlation Structure (Theorem 8(d))')
     ax2.set_ylim([-0.02, 0.85])
     ax2.legend(loc='upper left', frameon=True, fontsize=9.0)
     ax2.grid(True, alpha=0.3)
@@ -445,7 +445,7 @@ def generate_fig4():
 
     cbar2 = fig.colorbar(im, ax=ax2, fraction=0.046, pad=0.04)
     cbar2.set_label(r'Estimated Qualitative Correlation $[\Theta_{\mathrm{SPD}}]_{c, c^{\prime}}$', rotation=270, labelpad=15)
-    ax2.set_title(r'(b) Learned Correlation Matrix & Discovered Physical Clusters')
+    ax2.set_title(r'(b) Learned Correlation Matrix & Elastic Stiffness Grouping')
 
     plt.tight_layout()
     plt.savefig('figures/fig4_runtime_scaling.pdf', dpi=300, bbox_inches='tight')
