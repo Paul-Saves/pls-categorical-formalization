@@ -2,7 +2,7 @@
   FormalProofs.lean
   =================
   Formal specification and Lean 4 library for:
-  "Partial Least Squares for Qualitative Correlation Matrices: Geometry, Invariance, and Fast Spectral Repair"
+  "Partial Least Squares for Correlation Matrices: Theory and Applications"
   Author: Paul Saves
 
   Target Formal Verification Systems:

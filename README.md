@@ -1,4 +1,4 @@
-# Partial Least Squares for Qualitative Correlation Matrices: Geometry, Invariance, and Fast Spectral Repair
+# Partial Least Squares for Correlation Matrices: Theory and Applications
 
 [![Lean 4](https://img.shields.io/badge/Lean_4-Formalized-blue.svg)](https://leanprover.github.io/)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-brightgreen.svg)](https://python.org)
@@ -6,7 +6,7 @@
 
 Companion repository and open-source reproducibility package for the manuscript:
 
-> **Partial Least Squares for Qualitative Correlation Matrices: Geometry, Invariance, and Fast Spectral Repair**  
+> **Partial Least Squares for Correlation Matrices: Theory and Applications**  
 > **Author:** Paul Saves  
 > *Targeted for submission to Technometrics / Statistics and Computing*
 
@@ -187,7 +187,7 @@ If you use this work, its code, or the formal proofs in your research, please ci
 
 ```bibtex
 @article{saves2026pls,
-  title={Partial Least Squares for Qualitative Correlation Matrices: Geometry, Invariance, and Fast Spectral Repair},
+  title={Partial Least Squares for Correlation Matrices: Theory and Applications},
   author={Saves, Paul},
   journal={arXiv preprint},
   year={2026}

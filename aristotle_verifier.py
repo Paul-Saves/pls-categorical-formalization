@@ -3,7 +3,7 @@ aristotle_verifier.py
 =====================
 Formal Verification Orchestrator and Aristotle ATP Bundle Generator
 Companion tool for:
-"Partial Least Squares for Qualitative Correlation Matrices: Geometry, Invariance, and Fast Spectral Repair"
+"Partial Least Squares for Correlation Matrices: Theory and Applications"
 Author: Paul Saves
 
 This script:
@@ -113,7 +113,7 @@ def generate_aristotle_bundle():
 
     # Save to JSON bundle for Aristotle engine
     bundle = {
-        "manuscript_title": "Partial Least Squares for Qualitative Correlation Matrices: Geometry, Invariance, and Fast Spectral Repair",
+        "manuscript_title": "Partial Least Squares for Correlation Matrices: Theory and Applications",
         "author": "Paul Saves",
         "lean4_version": "v4.14.0",
         "mathlib_version": "v4.14.0",

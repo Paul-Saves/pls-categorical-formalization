@@ -2,7 +2,7 @@
 Comprehensive Numerical Verification of all Theorems and Lemmas in main.tex
 =============================================================================
 Companion verification script for:
-"Partial Least Squares for Qualitative Correlation Matrices: Geometry, Invariance, and Fast Spectral Repair"
+"Partial Least Squares for Correlation Matrices: Theory and Applications"
 Author: Paul Saves
 """
 
