@@ -912,7 +912,7 @@ For (a), substituting $[\Theta_{\mathrm{SPD}}]_{c, c'} = \frac{1}{1+\eta} [\math
 \end{proof}
 
 
-A common misconception in mixed-variable GP emulation is that adopting a distance-based kernel $k(d^2)$ bypasses the positive definiteness constraints on $\Theta$. However, Eq.\eqnref{eq:d_pls_expansion} reveals that if the unregularized reconstruction $\mathcal{T}_{G_*}(\hat{\Theta})$ is indefinite (which occurs in up to $88.6\%$ of trials in high dimensions), the Cholesky factorization $\Theta = V V^\top$ does not exist in real Euclidean space. The resulting quantity $d^2$ ceases to be CND, and evaluating radial kernels directly on unrepaired matrices produces indefinite sample Gram matrices. Therefore, applying the $O(L^2)$ repair operator $\Theta_{\mathrm{SPD}}$ of Theorem~\ref{th:reg_spd} is a mandatory mathematical prerequisite even when dealing with distance-based categorical kernels.
+A common misconception in mixed-variable GP emulation is that adopting a distance-based kernel $k(d^2)$ bypasses the positive definiteness constraints on $\Theta$. However, Eq.\eqnref{eq:d_pls_expansion} reveals that if the unregularized reconstruction $\mathcal{T}_{G_*}(\hat{\Theta})$ is indefinite (which occurs in up to $88.6\%$ of trials in high dimensions), the Cholesky factorization $\Theta = V V^\top$ does not exist in real Euclidean space. The resulting quantity $d^2$ ceases to be CND, and evaluating radial kernels directly on unrepaired matrices produces indefinite sample Gram matrices. Therefore, applying the $O(L^2)$ repair operator $\Theta_{\mathrm{SPD}}$ of Theorem~\ref{th:reg_spd} is a mandatory mathematical prerequisite even when dealing with distance-based categorical kernels. Furthermore, as established in Proposition~\ref{prop:ehh_full_angles} (Appendix~\ref{subsec:ehh_global_sphere}), Schoenberg admissibility holds globally across the full unconstrained angular manifold $[0, \pi]^{D_{\outp}-1} \times [0, 2\pi)$, establishing that negative correlation entries do not compromise the positive definiteness of radial categorical kernels.
 
 \section{Numerical Validation and Simulation Studies}
 \label{sec:simulations}
@@ -1468,6 +1468,36 @@ d_\Theta^2(j, j') &= 2 \left( \sum_{p=1}^{D_{\outp}} ([G_*]_{r, p})^2 - \sum_{p=
 &= \sum_{p=1}^{D_{\outp}} ([G_*]_{r, p})^2 \cdot 2\bigl(1 - [\hat{\Theta}]_{\psi^{-1}(p, \ell)}\bigr) = \sum_{p=1}^{D_{\outp}} ([G_*]_{r, p})^2 \hat{d}^2\bigl(\psi^{-1}(p, \ell)\bigr),
 \end{align}
 which establishes Eq.\eqnref{eq:d_pls_expansion}.
+\end{proof}
+
+\subsection{Global Schoenberg Admissibility on the Full Angular Hypersphere}
+\label{subsec:ehh_global_sphere}
+
+A persistent misconception in computational surrogate modeling with hypersphere decompositions \citep{saves2024smt,appriou2024high} is that spherical coordinate angles must be artificially restricted to the positive orthant $[0, \pi/2]^{D_{\outp}}$ under the assumption that negative off-diagonal correlations would invalidate distance-based exponential kernels. We formalize below that the Schoenberg chordal exponential kernel (Theorem~\ref{th:hilbert_kernel_psd}) remains strictly positive definite across the full unconstrained angular manifold $\bm{\theta}_{\mathrm{sph}} \in [0, \pi]^{D_{\outp}-1} \times [0, 2\pi)$.
+
+\begin{proposition}[Global Admissibility on the Full Angular Sphere]
+\label{prop:ehh_full_angles}
+Let $\bm{\theta}_{\mathrm{sph}} \in [0, \pi]^{D_{\outp}-1} \times [0, 2\pi)$ parameterize the Cholesky factor $L$ of a latent correlation matrix $\hat{\Theta} = L L^\top \in \mathcal{E}_\ell$. Let $G_* \in \mathbb{R}^{D_{\inp} \times D_{\outp}}$ satisfy the RN-PLS unit row-norm condition, and let $\Theta_{\mathrm{SPD}} = \mathcal{R}_{\mathrm{MDG}^*}(\mathcal{T}_{G_*}(\hat{\Theta})) \in \mathcal{E}_L$ with spectral shift $\eta \ge 0$ and $\lambda_{\min}(\Theta_{\mathrm{SPD}}) \ge \varepsilon > 0$.
+Then, for any qualitative inverse lengthscale $\theta_{\mathrm{qual}} > 0$, the Exponential Homoscedastic Hypersphere (EHH) Gram matrix
+\begin{equation}
+\label{eq:ehh_gram_matrix}
+[K_{\mathrm{EHH}}]_{c, c'} = \exp\bigl(\theta_{\mathrm{qual}} ([\Theta_{\mathrm{SPD}}]_{c, c'} - 1)\bigr)
+\end{equation}
+is strictly positive definite ($K_{\mathrm{EHH}} \succ 0$), even when $[\Theta_{\mathrm{SPD}}]_{c, c'} < 0$ for arbitrary pairs of categorical levels $(c, c')$.
+\end{proposition}
+
+\begin{proof}
+By Theorem~\ref{th:hilbert_kernel_psd}(a), since $[\Theta_{\mathrm{SPD}}]_{jj} \equiv 1$ and $\Theta_{\mathrm{SPD}} \succ 0$, there exists an exact Cholesky factorization $\Theta_{\mathrm{SPD}} = V V^\top$ where $V = [v_1, \dots, v_L]^\top$ with unit row vectors $v_c \in \mathbb{S}^{L-1}$. The chordal metric satisfies:
+\begin{equation}
+d_\Theta^2(c, c') = \|v_c - v_{c'}\|_2^2 = \|v_c\|_2^2 + \|v_{c'}\|_2^2 - 2 \langle v_c, v_{c'} \rangle = 2\bigl(1 - [\Theta_{\mathrm{SPD}}]_{c, c'}\bigr).
+\end{equation}
+This establishes an exact isometric embedding of the finite metric space $(\{1, \dots, L\}, d_\Theta)$ into Euclidean Hilbert space $\mathbb{R}^L$. By Schoenberg's classical embedding theorem \citep[Theorem~1]{schoenberg1938metric}, a metric space $(M, d)$ is isometrically embeddable in Hilbert space if and only if the radial Gaussian kernel $(x, y) \mapsto \exp(-\alpha d^2(x, y))$ is strictly positive definite for all $\alpha > 0$.
+Setting $\alpha = \frac{1}{2} \theta_{\mathrm{qual}} > 0$ yields:
+\begin{equation}
+\exp\left(-\frac{1}{2}\theta_{\mathrm{qual}} d_\Theta^2(c, c')\right) = \exp\left(-\frac{1}{2}\theta_{\mathrm{qual}} \cdot 2(1 - [\Theta_{\mathrm{SPD}}]_{c, c'})\right) = \exp\bigl(\theta_{\mathrm{qual}}([\Theta_{\mathrm{SPD}}]_{c, c'} - 1)\bigr) = [K_{\mathrm{EHH}}]_{c, c'}.
+\end{equation}
+Crucially, this embedding requires only $\Theta_{\mathrm{SPD}} \succeq 0$ and $[\Theta_{\mathrm{SPD}}]_{jj} = 1$, placing no sign constraint whatsoever on off-diagonal entries $[\Theta_{\mathrm{SPD}}]_{c, c'} \in [-1, 1]$.
+Orthogonal levels ($[\Theta_{\mathrm{SPD}}]_{c, c'} = 0$) give $d_\Theta^2 = 2 \implies [K_{\mathrm{EHH}}]_{c, c'} = \exp(-\theta_{\mathrm{qual}})$, while diametrically antipodal levels ($[\Theta_{\mathrm{SPD}}]_{c, c'} = -1$) attain maximal chordal distance $d_\Theta^2 = 4 \implies [K_{\mathrm{EHH}}]_{c, c'} = \exp(-2\theta_{\mathrm{qual}}) > 0$. Since $\det(\Theta_{\mathrm{SPD}}) > 0$, the embedding vectors $\{v_1, \dots, v_L\}$ are linearly independent and pairwise distinct, so Micchelli's interpolation theorem \citep{micchelli1986interpolation} ensures that $K_{\mathrm{EHH}} \succ 0$ is strictly positive definite.
 \end{proof}
 
 \section{Non-Smooth Analysis of the Fast Gershgorin Shift Operator}
