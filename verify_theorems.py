@@ -863,6 +863,104 @@ for ell_sc in [2, 3, 4, 5, 6, 7, 8]:
 
 print(" PASSED (Proposition 4 ell=2 collapse, Krylov saturation k_act<=17, & 5-strategy SPD invariants verified)")
 
+# ==============================================================================
+# TEST 14: Boundary Singularities, Closed-Form MDG*, & Global EHH Admissibility
+# ==============================================================================
+print("[TEST 14] Verifying Boundary Singularities & Extreme Coordinate Invariants (ell=L, ell=2, Active MDG* Closed Form, and Global EHH [0, 2pi])...", end="")
+
+# 1. Boundary Case ell = L: Identity Projection Invariance
+for L_val in [4, 6, 10, 15]:
+    Din_val = L_val * (L_val - 1) // 2
+    # In full space ell = L, G_star is strictly identity I_Din
+    G_star_full = np.eye(Din_val)
+    assert np.allclose(np.sum(G_star_full ** 2, axis=1), 1.0, atol=1e-15)
+    # Random correlation matrix on elliptope C_L
+    rand_A = np.random.randn(L_val, L_val + 2)
+    rand_cov = rand_A @ rand_A.T
+    d_diag = np.sqrt(np.diag(rand_cov))
+    Th_full = rand_cov / np.outer(d_diag, d_diag)
+    Th_rec = T_operator(G_star_full, Th_full, L_val, L_val)
+    assert np.allclose(Th_rec, Th_full, atol=1e-15), f"ell=L identity reconstruction failed for L={L_val}"
+
+# 2. Minimal Latent Dimension ell = 2 (D_out = 1): Equicorrelation Collapse
+for L_val in [4, 8, 15]:
+    Din_val = L_val * (L_val - 1) // 2
+    # At ell=2, Dout=1, unit row-norm forces G_star to be vector of 1's
+    G_star_min = np.ones((Din_val, 1))
+    assert np.allclose(np.sum(G_star_min ** 2, axis=1), 1.0, atol=1e-15)
+    theta_angle = 0.65  # cos(theta) in (-1, 1)
+    rho_val = np.cos(theta_angle)
+    Th_lat_2 = np.array([[1.0, rho_val], [rho_val, 1.0]])
+    Th_rec_2 = T_operator(G_star_min, Th_lat_2, L_val, 2)
+    expected_rec_2 = (1.0 - rho_val) * np.eye(L_val) + rho_val * np.ones((L_val, L_val))
+    assert np.allclose(Th_rec_2, expected_rec_2, atol=1e-15), f"ell=2 equicorrelation collapse failed for L={L_val}"
+
+# 3. Exact Verification of Active eta > 0 Closed-Form MDG* Shift
+L_stress = 4
+Din_stress = L_stress * (L_stress - 1) // 2
+G_star_stress = np.eye(Din_stress)
+Th_non_spd = np.array([
+    [1.0, 0.90, -0.80, 0.70],
+    [0.90, 1.0, 0.60, -0.75],
+    [-0.80, 0.60, 1.0, 0.85],
+    [0.70, -0.75, 0.85, 1.0],
+])
+assert np.min(np.linalg.eigvalsh(Th_non_spd)) < -1.0, "Stress matrix must be non-SPD"
+eps_stress = 1e-5
+# Closed form calculation
+off_vals = [0.90, -0.80, 0.70, 0.60, -0.75, 0.85]
+rho_bar_plus = max(0.0, float(np.mean(off_vals)))
+max_gersh = max(np.sum(np.abs(Th_non_spd), axis=1) - 1.0)
+max_mdg = max(np.sum(np.abs(Th_non_spd - rho_bar_plus), axis=1) - np.abs(1.0 - rho_bar_plus))
+eta_g_expected = max(0.0, max_gersh - 1.0 + eps_stress)
+eta_m_expected = max(0.0, rho_bar_plus + max_mdg - 1.0 + eps_stress)
+eta_expected = min(eta_g_expected, eta_m_expected)
+assert eta_expected > 0.0, "Shift must be strictly active"
+Th_spd_expected = (Th_non_spd + eta_expected * np.eye(L_stress)) / (1.0 + eta_expected)
+np.fill_diagonal(Th_spd_expected, 1.0)
+
+# Functional operator verification
+eta_computed = compute_eta_mdg(Th_non_spd, eps=eps_stress)
+assert np.isclose(eta_computed, eta_expected, atol=1e-15), f"MDG* shift mismatch: {eta_computed} vs {eta_expected}"
+Th_spd_computed = (Th_non_spd + eta_computed * np.eye(L_stress)) / (1.0 + eta_computed)
+assert np.allclose(Th_spd_computed, Th_spd_expected, atol=1e-15)
+assert np.min(np.linalg.eigvalsh(Th_spd_computed)) > 0.0
+
+# 4. Global Schoenberg Admissibility across full [0, 2pi] (Negative Correlations)
+rng_ehh = np.random.default_rng(2026)
+for L_ehh in [4, 6, 8]:
+    D_ehh = L_ehh * (L_ehh - 1) // 2
+    for _ in range(25):
+        # Sample full unconstrained spherical angles in [0, 2pi]
+        phi_full = rng_ehh.uniform(0.0, 2.0 * np.pi, size=D_ehh)
+        L_full = np.zeros((L_ehh, L_ehh))
+        L_full[0, 0] = 1.0
+        idx_p = 0
+        for i_r in range(1, L_ehh):
+            ang = phi_full[idx_p : idx_p + i_r]
+            idx_p += i_r
+            sp = 1.0
+            for k_c in range(i_r):
+                L_full[i_r, k_c] = sp * np.cos(ang[k_c])
+                sp *= np.sin(ang[k_c])
+            L_full[i_r, i_r] = sp
+        Th_full_sphere = L_full @ L_full.T
+        np.fill_diagonal(Th_full_sphere, 1.0)
+        # Apply MDG* repair to certify strict positivity
+        eta_rep = compute_eta_mdg(Th_full_sphere, eps=1e-5)
+        Th_spd_sphere = (Th_full_sphere + eta_rep * np.eye(L_ehh)) / (1.0 + eta_rep)
+        np.fill_diagonal(Th_spd_sphere, 1.0)
+        assert np.min(np.linalg.eigvalsh(Th_spd_sphere)) > 0.0
+
+        # Construct EHH chordal exponential kernel with varying lengthscales
+        for theta_qual in [0.1, 1.0, 5.0]:
+            K_ehh = np.exp(theta_qual * (Th_spd_sphere - 1.0))
+            np.fill_diagonal(K_ehh, 1.0)
+            min_eig_ehh = np.min(np.linalg.eigvalsh(K_ehh))
+            assert min_eig_ehh > 0.0, f"EHH violated strict positive definiteness: min eig = {min_eig_ehh}"
+
+print(" PASSED (Boundary dimensions, closed-form shift at 10^-15, & global EHH admissibility across [0, 2pi] verified)")
+
 print("\n" + "=" * 78)
 print("ALL THEORETICAL PREDICTIONS AND STATISTICAL BENCHMARKS VERIFIED WITH ZERO DISCREPANCIES.")
 print("=" * 78)
