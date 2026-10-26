@@ -1,0 +1,62 @@
+% Cover letter for submission to Statistics and Computing
+\documentclass[11pt]{letter}
+
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{url}
+\usepackage{hyperref}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue,
+    citecolor=blue
+}
+
+\signature{Paul Saves}
+\address{Paul Saves\\
+Institut de recherche pour le d\'eveloppement (IRD)\\
+UMMISCO, Sorbonne Universit\'e \& IRIT, Universit\'e Toulouse Capitole\\
+France\\
+\texttt{paul.saves@ird.fr}}
+
+\begin{document}
+
+\begin{letter}{Editors\\
+\textit{Statistics and Computing}}
+
+\opening{Dear Editors,}
+
+Please consider our manuscript, \emph{``Partial Least Squares for Correlation Matrices: Theory and Applications,''} for publication in \textit{Statistics and Computing}.
+
+This work represents the direct theoretical and practical continuation of our research on mixed-categorical surrogate modeling originally published in \textit{Structural and Multidisciplinary Optimization} (Saves et al., 2024, Springer Nature). While that earlier work demonstrated the empirical potential of Partial Least Squares (PLS) dimension reduction for high-dimensional qualitative variables in engineering optimization, it also brought to light fundamental mathematical and computational bottlenecks: linear PLS reconstructions frequently violate positive definiteness (in up to 88.6\% of cases in high dimensions) due to boundary contraction of the negative correlation threshold $-1/(L-1) \to 0^-$, and naive entrywise kernel exponentiation lacks metric foundations. The present manuscript directly resolves these open questions.
+
+The paper makes three main contributions. First, it investigates the geometry of the correlation elliptope, formalizes Row-Normalized PLS (RN-PLS), and proves that the admissible latent domain is an open, bounded, convex set whose closure is a compact spectrahedron. Second, it develops and analyzes certified $\mathcal{O}(L^2)$ diagonal-repair procedures based on Gershgorin-type bounds and a Mean-Deflated Gershgorin (MDG) approach, deriving exact closed-form Jacobians for fast gradient-based quasi-Newton (L-BFGS-B) optimization without runtime eigensolvers. Third, it constructs the Hilbertian chordal metric and proves the Schoenberg admissibility of distance-based radial categorical kernels, thoroughly evaluating their behaviour through extensive numerical benchmarks and an analytical cantilever-beam structural case study.
+
+We believe the manuscript is ideally suited to \textit{Statistics and Computing} as we continue this line of research within Springer Nature, bridging applied surrogate modeling with rigorous computational statistics and numerical linear algebra. Its focus is not solely on a particular application: it addresses the numerical construction and spectral analysis of correlation structures that arise in statistical emulation, and combines matrix-theoretic foundations, scalable algorithms, and reproducible empirical evaluation. We hope that these contributions will be of strong interest to readers working on computational statistics, Gaussian processes, and reliable statistical learning methods.
+
+The manuscript is accompanied by an openly available Python verification suite and benchmark artifacts to support computational reproducibility:
+\url{https://github.com/Paul-Saves/pls-categorical-formalization}.
+The open-source implementation of the proposed algorithms is also integrated into the Surrogate Modeling Toolbox (\texttt{SMT}):
+\url{https://github.com/SMTorg/smt}.
+
+This manuscript is original, is not published elsewhere, and is not under consideration by another journal. The author has approved the manuscript and its submission to \textit{Statistics and Computing}. There are no competing interests to declare.
+
+Thank you for considering our submission. We look forward to hearing from you.
+
+\closing{Sincerely,}
+
+\ps{PS: Suggested independent reviewers with recognized expertise in categorical Gaussian processes and computational surrogate modeling:
+\begin{itemize}
+    \item \textbf{Prof.~S\'ebastien Da Veiga} (ENSAI, CREST, France) -- \texttt{sebastien.daveiga@ensai.fr}
+    \item \textbf{Prof.~Olivier Roustant} (INSA Toulouse / Institut de Math\'ematiques de Toulouse, France) -- \texttt{olivier.roustant@insa-toulouse.fr}
+    \item \textbf{Prof.~V.~Roshan Joseph} (Georgia Institute of Technology, USA) -- \texttt{roshan@gatech.edu}
+    \item \textbf{Prof.~C.~Devon Lin} (Queen's University, Canada) -- \texttt{cdlin@mast.queensu.ca}
+    \item \textbf{Prof.~Josselin Garnier} (CMAP, \'Ecole Polytechnique, France) -- \texttt{josselin.garnier@polytechnique.edu}
+\end{itemize}}
+
+\end{letter}
+\end{document}

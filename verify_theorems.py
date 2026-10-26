@@ -6,6 +6,11 @@ Companion verification script for:
 Author: Paul Saves
 """
 
+import os
+os.environ.setdefault("OMP_NUM_THREADS", "1")
+os.environ.setdefault("MKL_NUM_THREADS", "1")
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+
 import numpy as np
 import sys
 
@@ -719,6 +724,144 @@ for _ in range(10):
     assert np.all(np.linalg.eigvalsh(K_rq) > 0), "Rational Quadratic categorical kernel must be SPD"
 
 print(" PASSED (Commutation, Ratio Invariance, Heteroscedasticity, & Universal Matern Family verified)")
+
+# ==============================================================================
+# TEST 13: Latent Dimension Scaling ell in {2, 3, 4, 5, 6, 7, 8}, Krylov Rank
+#          Saturation (Eq. eq:krylov_bound), & All 5 Repair Strategies
+# ==============================================================================
+print("[TEST 13] Verifying Latent Dimension Scaling ell in {2..8} & Krylov Rank Bound...", end="")
+
+L_sc, d_sc, nt_sc = 15, 3, 60
+Din_sc = L_sc * (L_sc - 1) // 2
+E_sc = np.zeros((L_sc, Din_sc))
+m_idx = 0
+for j in range(L_sc):
+    for jp in range(j + 1, L_sc):
+        E_sc[j, m_idx] = 1.0
+        E_sc[jp, m_idx] = 1.0
+        m_idx += 1
+
+rng_sc = np.random.RandomState(2026)
+# Construct a general mixed design with distinct level multiplicities n_j >= 1 summing to nt_sc=135 (L=15: 1+2+...+15 = 120, plus 1 each = 135)
+counts_sc = np.arange(2, L_sc + 2)  # [2, 3, ..., 16], sum = 135, all distinct so M^T M breaks eigenvalue multiplicity!
+nt_sc = int(np.sum(counts_sc))
+cats_sc = np.repeat(np.arange(L_sc), counts_sc)
+rng_sc.shuffle(cats_sc)
+X_quant_sc = rng_sc.uniform(0.0, 1.0, size=(nt_sc, d_sc))
+X_cat_sc = np.eye(L_sc)[cats_sc] @ E_sc
+X_joint_sc = np.hstack([X_quant_sc, X_cat_sc])
+y_sc = (
+    np.sin(2.0 * np.pi * X_quant_sc[:, 0]) * (1.0 + 0.2 * (cats_sc // 3))
+    + np.cos(2.0 * np.pi * X_quant_sc[:, 1]) * (0.5 - 0.15 * (cats_sc % 5))
+    + 0.4 * X_quant_sc[:, 2] * (cats_sc - 7.0) / 7.0
+    + 0.25 * np.sin(0.7 * cats_sc)
+)
+
+# Theoretical mixed Krylov rank bound (Eq. eq:krylov_bound): min(nt - 1, d + L_obs - 1) = 3 + 15 - 1 = 17
+krylov_rank_bound = min(nt_sc - 1, d_sc + L_sc - 1)
+assert krylov_rank_bound == 17
+
+X_mean_sc = np.mean(X_joint_sc, axis=0)
+X_std_sc = np.std(X_joint_sc, axis=0)
+X_std_sc[X_std_sc < 1e-12] = 1.0
+Xc_sc = (X_joint_sc - X_mean_sc) / X_std_sc
+yc_sc = (y_sc - np.mean(y_sc)) / np.std(y_sc)
+x_norm0_sc = np.linalg.norm(Xc_sc)
+
+for ell_sc in [2, 3, 4, 5, 6, 7, 8]:
+    Dout_sc = ell_sc * (ell_sc - 1) // 2
+    W_pls = np.zeros((Xc_sc.shape[1], Dout_sc))
+    P_pls = np.zeros((Xc_sc.shape[1], Dout_sc))
+    Ek = Xc_sc.copy()
+    fk = yc_sc.copy()
+    k_act = 0
+    for k in range(Dout_sc):
+        if np.linalg.norm(Ek) < 1e-9 * x_norm0_sc:
+            break
+        wk = Ek.T @ fk
+        nw = np.linalg.norm(wk)
+        if nw < 1e-9:
+            break
+        wk /= nw
+        tk = Ek @ wk
+        nt_n = np.linalg.norm(tk)
+        if nt_n < 1e-9:
+            break
+        tk /= nt_n
+        pk = Ek.T @ tk
+        qk = float(np.dot(fk, tk))
+        Ek = Ek - np.outer(tk, pk)
+        fk = fk - tk * qk
+        W_pls[:, k] = wk
+        P_pls[:, k] = pk
+        k_act += 1
+
+    # Verify active Krylov dimension bound across ell in [2, 10]
+    assert k_act <= krylov_rank_bound, f"Krylov rank {k_act} exceeded bound {krylov_rank_bound}"
+    if Dout_sc <= krylov_rank_bound:
+        assert k_act == Dout_sc, f"Expected full active dimension {Dout_sc} for ell={ell_sc}, got {k_act}"
+    else:
+        assert k_act == krylov_rank_bound, f"Expected Krylov saturation at {krylov_rank_bound} for ell={ell_sc}, got {k_act}"
+
+    G_raw_sc = np.zeros((Xc_sc.shape[1], Dout_sc))
+    PW_sc = P_pls[:, :k_act].T @ W_pls[:, :k_act]
+    G_raw_sc[:, :k_act] = W_pls[:, :k_act] @ np.linalg.solve(PW_sc, np.eye(k_act))
+    G_cat_sc = G_raw_sc[d_sc:, :]
+    rn_sc = np.linalg.norm(G_cat_sc, axis=1, keepdims=True)
+    G_star_sc = np.where(rn_sc >= 1e-12, G_cat_sc / np.maximum(rn_sc, 1e-12), 1.0 / np.sqrt(Dout_sc))
+
+    # Unit row-norm invariance across all ell in [2, 10]
+    assert np.allclose(np.sum(G_star_sc ** 2, axis=1), 1.0, atol=1e-13)
+
+    # Cholesky hypersphere latent correlation matrix in C_ell
+    phi_sc = rng_sc.uniform(0.15, np.pi - 0.15, size=Dout_sc)
+    if ell_sc == 2:
+        phi_sc = np.array([np.pi / 3.0])  # cos(pi/3) = +0.5 > 1/(L-1)
+    L_chol = np.zeros((ell_sc, ell_sc))
+    L_chol[0, 0] = 1.0
+    idx_p = 0
+    for i_r in range(1, ell_sc):
+        ang = phi_sc[idx_p : idx_p + i_r]
+        idx_p += i_r
+        sp = 1.0
+        for k_c in range(i_r):
+            L_chol[i_r, k_c] = sp * np.cos(ang[k_c])
+            sp *= np.sin(ang[k_c])
+        L_chol[i_r, i_r] = sp
+    Theta_hat_sc = L_chol @ L_chol.T
+    assert np.allclose(np.diag(Theta_hat_sc), 1.0, atol=1e-14)
+    assert np.min(np.linalg.eigvalsh(Theta_hat_sc)) > 0.0
+
+    Theta_sc = T_operator(G_star_sc, Theta_hat_sc, L_sc, ell_sc)
+    eps_sc = 1e-4
+    eta_ex = max(0.0, -float(np.min(np.linalg.eigvalsh(Theta_sc))) + eps_sc)
+    eta_ge = compute_eta_gersh(Theta_sc, eps=eps_sc)
+    eta_md = compute_eta_mdg(Theta_sc, eps=eps_sc)
+    assert eta_ex <= eta_md + 1e-10 and eta_md <= eta_ge + 1e-10
+
+    # Verify all 5 strategies produce SPD matrices and check unit-diagonal invariance
+    Th_nug = Theta_sc + eta_ex * np.eye(L_sc)
+    eigs_cl, V_cl = np.linalg.eigh(Theta_sc)
+    Th_cl_raw = (V_cl * np.maximum(eigs_cl, eps_sc)) @ V_cl.T
+    d_cl = np.sqrt(np.diag(Th_cl_raw))
+    Th_clip = Th_cl_raw / np.outer(d_cl, d_cl)
+    Th_ex = (Theta_sc + eta_ex * np.eye(L_sc)) / (1.0 + eta_ex)
+    Th_ge = (Theta_sc + eta_ge * np.eye(L_sc)) / (1.0 + eta_ge)
+    Th_md = (Theta_sc + eta_md * np.eye(L_sc)) / (1.0 + eta_md)
+
+    for name_s, M_rep in [("clip", Th_clip), ("exact", Th_ex), ("gersh", Th_ge), ("mdg", Th_md)]:
+        assert np.allclose(np.diag(M_rep), 1.0, atol=1e-14), f"{name_s} violated unit diagonal at ell={ell_sc}"
+        assert np.min(np.linalg.eigvalsh(M_rep)) > 0.0, f"{name_s} failed SPD at ell={ell_sc}"
+    assert np.min(np.linalg.eigvalsh(Th_nug)) > 0.0
+
+    # At ell = 2, verify Proposition 4 equicorrelation collapse and exact=clip=mdg coincidence for rho > 0
+    if ell_sc == 2:
+        rho_0 = Theta_hat_sc[0, 1]
+        assert np.allclose(Theta_sc, (1.0 - rho_0) * np.eye(L_sc) + rho_0 * np.ones((L_sc, L_sc)))
+        assert np.allclose(Th_ex, Th_md) and np.allclose(Th_ex, Th_clip)
+        assert eta_ge > 0.0 and not np.allclose(Th_ge, Th_md)
+
+print(" PASSED (Proposition 4 ell=2 collapse, Krylov saturation k_act<=17, & 5-strategy SPD invariants verified)")
 
 print("\n" + "=" * 78)
 print("ALL THEORETICAL PREDICTIONS AND STATISTICAL BENCHMARKS VERIFIED WITH ZERO DISCREPANCIES.")

@@ -39,9 +39,10 @@ However, unconstrained PLS reconstruction frequently violates positive definiten
 ├── requirements.txt               # Minimal Python dependencies
 │
 ├── generate_all_tables.py         # Master reproduction script for Tables 2, 3, 4, 5, C2
-├── generate_all_figures.py        # Master reproduction script for Figures 1, 2, 3, 4
+├── generate_all_figures.py        # Master reproduction script for Figures 1, 2, 3, 4, 5
 ├── benchmark_gp_experiments.py    # Multi-start L-BFGS-B GP emulation benchmark
-├── verify_theorems.py             # 12-suite Monte Carlo theorem verification harness
+├── benchmark_ell_scaling.py       # Latent dimension scaling benchmark across ell in {2..8}
+├── verify_theorems.py             # 13-suite Monte Carlo theorem verification harness
 │
 ├── FormalProofs.lean              # Lean 4 formalization (definitions, lemmas, theorems)
 ├── AristotleExport.lean           # Standalone Aristotle ATP proof goal specifications
@@ -53,7 +54,8 @@ However, unconstrained PLS reconstruction frequently violates positive definiten
     ├── fig1_phase_diagram.pdf     # Admissible domain A_L slices & cluster Frobenius distortion
     ├── fig2_repair_tradeoff.pdf   # Profile likelihood landscape, chambers, & L-BFGS-B convergence
     ├── fig3_benchmark_boxplots.pdf# Budget scaling (nt/L) & condition number stability boxplots
-    └── fig4_runtime_scaling.pdf   # Pareto MLE runtime scaling (L <= 80) & Cantilever correlation heatmap
+    ├── fig4_runtime_scaling.pdf   # Pareto MLE runtime scaling (L <= 80) & Cantilever correlation heatmap
+    └── fig5_ell_scaling.pdf       # Latent dimension ell in [2, 8] scaling & accuracy--cost Pareto sweet spot
 ```
 
 ---
@@ -92,7 +94,7 @@ python generate_all_tables.py --table 3    # Table C2: Empirical distribution of
 
 ### 3. Reproduce All Vector Figures
 
-Generate all 4 publication vector figures in `figures/` (both PDF and 300 DPI PNG):
+Generate all 5 publication vector figures in `figures/` (both PDF and 300 DPI PNG):
 ```bash
 python generate_all_figures.py
 ```
@@ -167,6 +169,7 @@ The mapping between the manuscript theorems in `main.tex` and the Lean 4 proof g
 | **Table 3** | Regularization Strategy Comparison ($L=15, \ell=3$) | Benchmarks ($N=200$) | `generate_all_tables.py --table 5` & Section 6.3 |
 | **Table 4** | Condition Number $\kappa(K_{\mathrm{train}})$ and RMSE on $f_1, f_2, f_3$ | 50 Replications $\times$ 5 Starts | `generate_all_tables.py --table 6` & Section 6.3 |
 | **Table 5** | Aerospace Cantilever Beam Emulation Benchmark ($L=12, d=3$) | 30 Replications | `benchmark_gp_experiments.py` & Section 6.4 |
+| **Table 6** | Latent Dimension Scaling $\ell \in [2, 8]$ and Accuracy--Cost Trade-offs | 20 Replications $\times$ $\ell$ Starts | `benchmark_ell_scaling.py` & Section 6.5 |
 | **Table C1** | Operational Duality of Bidirectional PLS Operators | Analytical / Algebraic | Appendix C.1 (`tab:operator_comparison`) |
 | **Table C2** | Empirical Distribution of Raw PLS Row Norms ($N=1{,}000$) | Monte Carlo ($N=1{,}000$) | `generate_all_tables.py --table 3` & Appendix C.2 |
 
@@ -178,6 +181,7 @@ The mapping between the manuscript theorems in `main.tex` and the Lean 4 proof g
 | **Figure 2** | Concentrated profile likelihood $\mathcal{L}(\bm{\theta})$ contours, polyhedral chambers, and L-BFGS-B convergence trajectories. | `figures/fig2_repair_tradeoff.pdf` |
 | **Figure 3** | Predictive test error scaling across training budgets $n_t/L \in \{2, 3, 4, 6\}$ and training condition number $\log_{10} \kappa$ boxplots. | `figures/fig3_benchmark_boxplots.pdf` |
 | **Figure 4** | Pareto MLE training time scaling ($L \le 80$) and learned $12 \times 12$ correlation matrix heatmap on the Aerospace Cantilever Beam. | `figures/fig4_runtime_scaling.pdf` |
+| **Figure 5** | Sensitivity to latent PLS dimension $\ell \in [2, 8]$ and superlinear multi-start computational cost scaling. | `figures/fig5_ell_scaling.pdf` |
 
 ---
 
